@@ -11,7 +11,7 @@ LANE_IDS = {
 NUM_AGENTS = 4
 OBS_DIM = 9
 PHASES = 4
-SUMO_CFG = "simulation.sumocfg"
+SUMO_CFG = "configs/simulation.sumocfg"
 
 
 class TraCIEnv:
@@ -38,9 +38,25 @@ class TraCIEnv:
     def get_obs(self):
         obs = {}
         for tl_id in self.agents:
-            obs[tl_id] = [0.0] * OBS_DIM
+            lanes = LANE_IDS[tl_id]
+
+            queue = [traci.lane.getLastStepHaltingNumber(l) for l in lanes]
+            wait = [traci.lane.getWaitingTime(l) for l in lanes]
+
+            phase = traci.trafficlight.getPhase(tl_id)
+            phase_onehot = [1.0 if p == phase else 0.0 for p in range(PHASES)]
+
+            time_since_switch = traci.trafficlight.getPhaseDuration(tl_id) - \
+                (traci.trafficlight.getNextSwitch(tl_id) - traci.simulation.getTime())
+            time_since_switch = time_since_switch / 100.0
+
+            obs[tl_id] = queue + wait + phase_onehot + [time_since_switch]
         return obs
 
     def get_reward(self):
-        return 0.0
+        total_wait = 0.0
+        for tl_id in self.agents:
+            for lane in LANE_IDS[tl_id]:
+                total_wait += traci.lane.getWaitingTime(lane)
+        return -total_wait
 
