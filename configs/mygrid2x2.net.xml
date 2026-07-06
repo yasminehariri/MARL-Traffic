@@ -75,17 +75,49 @@
         <lane id="B1B0_0" index="0" speed="13.89" length="193.60" shape="198.40,196.80 198.40,3.20"/>
     </edge>
 
+    <!-- Green phases (even indices 0,2,4,6) are the agent's actions; each is
+         followed by a 3s yellow phase (odd indices) so every green->red
+         transition passes through yellow. The env asserts phases via TraCI, so
+         durations are upper bounds, not fixed cycle times. -->
     <tlLogic id="A0" type="static" programID="0" offset="0">
         <phase duration="90" state="GG"/>
+        <phase duration="3"  state="yy"/>
+        <phase duration="90" state="Gr"/>
+        <phase duration="3"  state="yr"/>
+        <phase duration="90" state="rG"/>
+        <phase duration="3"  state="ry"/>
+        <phase duration="90" state="rr"/>
+        <phase duration="3"  state="rr"/>
     </tlLogic>
     <tlLogic id="A1" type="static" programID="0" offset="0">
         <phase duration="90" state="GG"/>
+        <phase duration="3"  state="yy"/>
+        <phase duration="90" state="Gr"/>
+        <phase duration="3"  state="yr"/>
+        <phase duration="90" state="rG"/>
+        <phase duration="3"  state="ry"/>
+        <phase duration="90" state="rr"/>
+        <phase duration="3"  state="rr"/>
     </tlLogic>
     <tlLogic id="B0" type="static" programID="0" offset="0">
         <phase duration="90" state="GG"/>
+        <phase duration="3"  state="yy"/>
+        <phase duration="90" state="Gr"/>
+        <phase duration="3"  state="yr"/>
+        <phase duration="90" state="rG"/>
+        <phase duration="3"  state="ry"/>
+        <phase duration="90" state="rr"/>
+        <phase duration="3"  state="rr"/>
     </tlLogic>
     <tlLogic id="B1" type="static" programID="0" offset="0">
         <phase duration="90" state="GG"/>
+        <phase duration="3"  state="yy"/>
+        <phase duration="90" state="Gr"/>
+        <phase duration="3"  state="yr"/>
+        <phase duration="90" state="rG"/>
+        <phase duration="3"  state="ry"/>
+        <phase duration="90" state="rr"/>
+        <phase duration="3"  state="rr"/>
     </tlLogic>
 
     <junction id="A0" type="traffic_light" x="0.00" y="0.00" incLanes="A1A0_0 B0A0_0" intLanes=":A0_0_0 :A0_1_0" shape="-3.20,3.20 3.20,3.20 3.20,-3.20 -0.36,-2.49 -1.60,-1.60 -2.49,-0.36 -3.02,1.24">
