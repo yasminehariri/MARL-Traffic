@@ -37,14 +37,17 @@ class TraCIEnv:
         self.yellow_left = {tl: 0 for tl in TL_IDS}
         self.elapsed = {tl: 0 for tl in TL_IDS}
 
-    def reset(self):
+    def reset(self, route_file=None):
         if traci.isLoaded():
             traci.close()
-        traci.start(["sumo", "-c", SUMO_CFG])
-        self.green = {tl: 0 for tl in self.agents}
-        self.pending = {tl: 0 for tl in self.agents}
-        self.yellow_left = {tl: 0 for tl in self.agents}
-        self.elapsed = {tl: 0 for tl in self.agents}
+        cmd = ["sumo", "-c", SUMO_CFG, "--tripinfo-output.write-unfinished"]
+        if route_file:
+            cmd += ["--route-files", route_file]
+        traci.start(cmd)
+        self.green = {tl: 0 for tl in TL_IDS}
+        self.pending = {tl: 0 for tl in TL_IDS}
+        self.yellow_left = {tl: 0 for tl in TL_IDS}
+        self.elapsed = {tl: 0 for tl in TL_IDS}
         for tl_id in self.agents:
             traci.trafficlight.setPhase(tl_id, 0)
         return self.get_obs()
