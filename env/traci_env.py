@@ -2,14 +2,9 @@
 
 # Point SUMO_HOME at the installed sumo package so SUMO finds its XSD schemas
 # and can validate the network/route XML (portable across machines/venvs).
-try:
-    import sumo
-    _sumo_home = os.path.dirname(sumo.__file__)
-    if os.path.isdir(os.path.join(_sumo_home, "data", "xsd")):
-        os.environ["SUMO_HOME"] = _sumo_home
-except ImportError:
-    pass
-
+import os
+import sumolib
+os.environ["SUMO_HOME"] = os.path.dirname(sumolib.__file__)
 import traci
 
 # Network constants — confirmed Day 4
@@ -29,18 +24,18 @@ MAX_QUEUE = 20.0
 
 # The net defines 8 phases per light: green phases at even indices (the agent's
 # 4 actions) each followed by a 3s yellow phase at the next odd index.
-GREEN_PHASES = [0, 2, 4, 6]
+GREEN_PHASES = [0, 2, 4, 6]  # GG, Gr, rG, rG2 — four agent green choices
+PHASES = 4
 YELLOW_TIME = 3  # simulation steps of yellow inserted on every phase change
 
 class TraCIEnv:
     def __init__(self):
         self.agents = TL_IDS
         self.num_agents = NUM_AGENTS
-        # Per-agent phase state machine (initialised in reset()).
-        self.green = {}        # current committed green phase index (even)
-        self.pending = {}      # green to switch to once yellow finishes
-        self.yellow_left = {}  # steps of yellow remaining, 0 == showing green
-        self.elapsed = {}      # steps the current green has been held
+        self.green = {tl: 0 for tl in TL_IDS}
+        self.pending = {tl: 0 for tl in TL_IDS}
+        self.yellow_left = {tl: 0 for tl in TL_IDS}
+        self.elapsed = {tl: 0 for tl in TL_IDS}
 
     def reset(self):
         if traci.isLoaded():
@@ -56,7 +51,7 @@ class TraCIEnv:
 
     def step(self, actions):
         for i, tl_id in enumerate(self.agents):
-            target = GREEN_PHASES[actions[i]]
+            target = GREEN_PHASES[max(0, min(actions[i], len(GREEN_PHASES) - 1))]
             if self.yellow_left[tl_id] > 0:
                 # Mid-transition: hold yellow, ignore the new action until done.
                 self.yellow_left[tl_id] -= 1
