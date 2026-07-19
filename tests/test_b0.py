@@ -7,31 +7,37 @@ from env.metrics_logger import MetricsLogger
 from env.traci_env import LANE_IDS
 import traci
 
-env = TraCIEnv()
-controller = FixedTimeController()
-logger = MetricsLogger(
-    log_dir="logs",
-    run_id="b0_uniform_final",
-    condition="B0",
-    scenario="uniform"
-)
-
 NUM_EPISODES = 10
 
-for episode in range(1, NUM_EPISODES + 1):
-    obs = env.reset()
-    controller.reset()
-    done = False
-    step = 0
+SCENARIOS = [
+    ("uniform",  "configs/routes.rou.xml"),
+    ("peak",     "configs/routes_peak.rou.xml"),
+    ("asymmetric", "configs/routes_asym.rou.xml"),
+]
 
-    while not done:
-        actions = controller.get_actions()
-        obs, reward, done, info = env.step(actions)
-        logger.log_step(obs, reward, LANE_IDS)
-        step += 1
+env = TraCIEnv()
+controller = FixedTimeController()
 
-    traci.close()
-    logger.log_episode(episode)
-    print(f"Episode {episode} complete — {step} steps")
+for scenario_name, route_file in SCENARIOS:
+    print(f"\n--- Running B0 on {scenario_name} ---")
+    logger = MetricsLogger(
+        log_dir="logs",
+        run_id=f"b0_{scenario_name}_final",
+        condition="B0",
+        scenario=scenario_name
+    )
 
-print("B0 test done — check logs/results.csv")
+    for episode in range(1, NUM_EPISODES + 1):
+        obs = env.reset(route_file=route_file)
+        controller.reset()
+        done = False
+
+        while not done:
+            actions = controller.get_actions()
+            obs, reward, done, info = env.step(actions)
+            logger.log_step(obs, reward, LANE_IDS)
+
+        traci.close()
+        logger.log_episode(episode)
+
+print("\nB0 complete across all 3 scenarios — check logs/results.csv")
