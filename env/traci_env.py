@@ -8,15 +8,16 @@ os.environ["SUMO_HOME"] = os.path.dirname(sumolib.__file__)
 import traci
 
 # Network constants — confirmed Day 4
-TL_IDS = ["A0", "A1", "B0", "B1"]
+TL_IDS = ["A0", "A1", "B0", "B1"] # the list of the four traffic-light IDs
 LANE_IDS = {
+    # "Key" : [value1:  cares arriveng from left, value2: cares arriving from right]
     "A0": ["A1A0_0", "B0A0_0"],
     "A1": ["B1A1_0", "A0A1_0"],
     "B0": ["B1B0_0", "A0B0_0"],
     "B1": ["B0B1_0", "A1B1_0"],
 }
 NUM_AGENTS = 4
-OBS_DIM = 9
+OBS_DIM = 9      # 4 queue values + 4 phase indicators + 1 timer = 9
 PHASES = 4
 SUMO_CFG = "configs/simulation.sumocfg"
 MAX_PHASE_DURATION = 90.0

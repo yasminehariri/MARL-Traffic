@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 
-high = ET.parse('configs/trips_peak_high.rou.xml').getroot()
-low = ET.parse('configs/trips_peak_low.rou.xml').getroot()
+high = ET.parse('configs/trips_peak_high_routed.rou.xml').getroot()
+low = ET.parse('configs/trips_peak_low_routed.rou.xml').getroot()
 
 # Create new root
 merged = ET.Element('routes')
