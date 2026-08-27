@@ -1,4 +1,4 @@
-﻿import os
+import os
 
 # Point SUMO_HOME at the installed sumo package so SUMO finds its XSD schemas
 # and can validate the network/route XML (portable across machines/venvs).
@@ -10,16 +10,16 @@ import traci
 # Network constants — confirmed Day 4
 TL_IDS = ["A0", "A1", "B0", "B1"] # the list of the four traffic-light IDs
 LANE_IDS = {
-    # "Key" : [value1:  cares arriveng from left, value2: cares arriving from right]
-    "A0": ["A1A0_0", "B0A0_0"],
-    "A1": ["B1A1_0", "A0A1_0"],
-    "B0": ["B1B0_0", "A0B0_0"],
-    "B1": ["B0B1_0", "A1B1_0"],
+    # 4 real incoming lanes per intersection: 2 internal (grid neighbours) + 2 external (fringe)
+    "A0": ["bottom0A0_0", "left0A0_0", "A1A0_0", "B0A0_0"],
+    "A1": ["left1A1_0", "top0A1_0", "A0A1_0", "B1A1_0"],
+    "B0": ["right0B0_0", "bottom1B0_0", "B1B0_0", "A0B0_0"],
+    "B1": ["right1B1_0", "top1B1_0", "B0B1_0", "A1B1_0"],
 }
 NUM_AGENTS = 4
 OBS_DIM = 9      # 4 queue values + 4 phase indicators + 1 timer = 9
 PHASES = 4
-SUMO_CFG = "configs/simulation.sumocfg"
+SUMO_CFG = "/content/MARL-Traffic/configs/simulation.sumocfg"
 MAX_PHASE_DURATION = 90.0
 MAX_QUEUE = 20.0
 
@@ -86,14 +86,11 @@ class TraCIEnv:
         obs = {}
         for tl_id in self.agents:
             lanes = LANE_IDS[tl_id]
-            q0 = min(traci.lane.getLastStepHaltingNumber(lanes[0]), MAX_QUEUE) / MAX_QUEUE
-            q1 = min(traci.lane.getLastStepHaltingNumber(lanes[1]), MAX_QUEUE) / MAX_QUEUE
-            q2 = 0.0  # placeholder — needs cross-directional routes
-            q3 = 0.0  # placeholder — needs cross-directional routes
+            q = [min(traci.lane.getLastStepHaltingNumber(l), MAX_QUEUE) / MAX_QUEUE for l in lanes]
             phase_idx = self.green[tl_id] // 2
             phase_onehot = [1.0 if phase_idx == i else 0.0 for i in range(PHASES)]
             elapsed_ratio = min(self.elapsed[tl_id] / MAX_PHASE_DURATION, 1.0)
-            obs[tl_id] = [q0, q1, q2, q3] + phase_onehot + [elapsed_ratio]
+            obs[tl_id] = q + phase_onehot + [elapsed_ratio]
         return obs
 
     def get_reward(self):
