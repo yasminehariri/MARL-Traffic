@@ -34,14 +34,12 @@ class MetricsLogger:
                 writer.writeheader()
 
     def log_step(self, obs, reward, lane_ids):
-        # Called every step during an episode
-        # Accumulate queue lengths from obs
-        for tl_id, vec in obs.items():
-            q0, q1 = vec[0], vec[1]  # real queue values
-            self._queue_lengths.append((q0 + q1) / 2)
+    for tl_id, vec in obs.items():
+        queues = vec[0:4]  # all 4 real queue values
+        self._queue_lengths.append(sum(queues) / len(queues))
 
-        self._cumulative_reward += reward
-        self._steps += 1
+    self._cumulative_reward += reward
+    self._steps += 1
 
     def log_episode(self, episode, tripinfo_path="configs/tripinfo.xml"):
         # Called at end of each episode
