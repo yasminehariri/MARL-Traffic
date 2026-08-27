@@ -94,11 +94,11 @@ class TraCIEnv:
         return obs
 
     def get_messages(self):
-    """
-    Hand-crafted communication (B2): each agent's raw queue readings,
-    to be broadcast to its neighbours as-is (no learning, no encoding).
-    Returns {tl_id: [q0, q1, q2, q3]} — same 4 real queue values used in get_obs().
-    """
+        """
+        Hand-crafted communication (B2): each agent's raw queue readings,
+        to be broadcast to its neighbours as-is (no learning, no encoding).
+        Returns {tl_id: [q0, q1, q2, q3]} — same 4 real queue values used in get_obs().
+        """
         messages = {}
         for tl_id in self.agents:
             lanes = LANE_IDS[tl_id]
