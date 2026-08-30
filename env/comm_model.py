@@ -75,7 +75,7 @@ class E1CommModel(TorchModelV2, nn.Module):
         new_messages = self.encoder(real_obs)  # encoder only sees REAL obs, not the ID tag
         for i in range(batch_size):
             aid = agent_ids[i]
-            self.message_cache[aid] = new_messages[i].detach()
+            self.message_cache[aid] = new_messages[i]
 
         return action_logits, state
 
