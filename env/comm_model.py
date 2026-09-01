@@ -76,7 +76,7 @@ class E1CommModel(TorchModelV2, nn.Module):
         new_messages = self.encoder(real_obs)
         for i in range(batch_size):
             aid = agent_ids[i]
-            self.message_cache[aid] = new_messages[i]  # no .detach(), per our earlier fix
+            self.message_cache[aid] = new_messages[i].clone()  # <-- clone on write, not just on read
 
         return action_logits, state
 
