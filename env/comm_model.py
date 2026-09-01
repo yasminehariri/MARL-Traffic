@@ -63,10 +63,10 @@ class E1CommModel(TorchModelV2, nn.Module):
         agent_ids = self._decode_agent_ids(id_onehot)
         batch_size = real_obs.shape[0]
 
-        mean_neighbor_msgs = torch.zeros(batch_size, MSG_DIM, device=device)  # <-- fixed
+        mean_neighbor_msgs = torch.zeros(batch_size, MSG_DIM, device=device)
         for i in range(batch_size):
             aid = agent_ids[i]
-            neighbor_msgs = torch.stack([self.message_cache[n].to(device) for n in NEIGHBORS[aid]])  # <-- fixed
+            neighbor_msgs = torch.stack([self.message_cache[n].to(device).clone() for n in NEIGHBORS[aid]])
             mean_neighbor_msgs[i] = neighbor_msgs.mean(dim=0)
 
         policy_input = torch.cat([real_obs, mean_neighbor_msgs], dim=1)
@@ -79,7 +79,7 @@ class E1CommModel(TorchModelV2, nn.Module):
             self.message_cache[aid] = new_messages[i]  # no .detach(), per our earlier fix
 
         return action_logits, state
-        
+
     @override(TorchModelV2)
     def value_function(self):
         return self._last_value
