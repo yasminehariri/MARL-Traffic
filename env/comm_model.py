@@ -54,31 +54,32 @@ class E1CommModel(TorchModelV2, nn.Module):
 
     @override(TorchModelV2)
     def forward(self, input_dict, state, seq_lens):
-        full_obs = input_dict["obs"].float()  # shape: (batch, 13)
+        full_obs = input_dict["obs"].float()
+        device = full_obs.device  # <-- get whatever device this batch is actually on
 
-        real_obs = full_obs[:, :OBS_DIM]              # first 9 columns: real traffic obs
-        id_onehot = full_obs[:, OBS_DIM:]              # last 4 columns: agent ID tag
+        real_obs = full_obs[:, :OBS_DIM]
+        id_onehot = full_obs[:, OBS_DIM:]
 
         agent_ids = self._decode_agent_ids(id_onehot)
         batch_size = real_obs.shape[0]
 
-        mean_neighbor_msgs = torch.zeros(batch_size, MSG_DIM)
+        mean_neighbor_msgs = torch.zeros(batch_size, MSG_DIM, device=device)  # <-- fixed
         for i in range(batch_size):
             aid = agent_ids[i]
-            neighbor_msgs = torch.stack([self.message_cache[n] for n in NEIGHBORS[aid]])
+            neighbor_msgs = torch.stack([self.message_cache[n].to(device) for n in NEIGHBORS[aid]])  # <-- fixed
             mean_neighbor_msgs[i] = neighbor_msgs.mean(dim=0)
 
-        policy_input = torch.cat([real_obs, mean_neighbor_msgs], dim=1)  # (batch, 17)
+        policy_input = torch.cat([real_obs, mean_neighbor_msgs], dim=1)
         action_logits = self.policy_net(policy_input)
         self._last_value = self.value_head(policy_input).squeeze(1)
 
-        new_messages = self.encoder(real_obs)  # encoder only sees REAL obs, not the ID tag
+        new_messages = self.encoder(real_obs)
         for i in range(batch_size):
             aid = agent_ids[i]
-            self.message_cache[aid] = new_messages[i]
+            self.message_cache[aid] = new_messages[i]  # no .detach(), per our earlier fix
 
         return action_logits, state
-
+        
     @override(TorchModelV2)
     def value_function(self):
         return self._last_value
