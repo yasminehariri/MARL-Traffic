@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.nn as nn
 from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
@@ -6,20 +5,10 @@ from ray.rllib.utils.annotations import override
 
 from env.message_encoder import MessageEncoder
 
-NEIGHBORS = {
-    "A0": ["A1", "B0"],
-    "A1": ["A0", "B1"],
-    "B0": ["A0", "B1"],
-    "B1": ["A1", "B0"],
-}
-
-# Order MUST match AGENT_ID_ONEHOT in rllib_env_e1.py
-AGENT_ORDER = ["A0", "A1", "B0", "B1"]
-
 OBS_DIM = 9
-AGENT_ID_DIM = 4
+NUM_NEIGHBORS = 2
 MSG_DIM = 8
-POLICY_INPUT_DIM = OBS_DIM + MSG_DIM  # 17 -- policy still only sees obs + messages, not the ID tag
+POLICY_INPUT_DIM = OBS_DIM + MSG_DIM  # 17, same as before
 
 
 class CommPolicyNetwork(nn.Module):
@@ -36,6 +25,15 @@ class CommPolicyNetwork(nn.Module):
 
 
 class E1CommModel(TorchModelV2, nn.Module):
+    """
+    Fully stateless communication model. Every forward() call independently
+    recomputes messages for this agent AND its neighbours from their raw
+    observations (bundled into the input by MARLTrafficEnvE1), using the
+    SAME encoder weights for everyone (shared policy / parameter sharing).
+    No cache, no cross-call memory -- safe under RLlib's shuffled,
+    multi-epoch minibatch training.
+    """
+
     def __init__(self, obs_space, action_space, num_outputs, model_config, name):
         TorchModelV2.__init__(self, obs_space, action_space, num_outputs, model_config, name)
         nn.Module.__init__(self)
@@ -45,38 +43,25 @@ class E1CommModel(TorchModelV2, nn.Module):
         self.value_head = nn.Linear(POLICY_INPUT_DIM, 1)
         self._last_value = None
 
-        self.message_cache = {aid: torch.zeros(MSG_DIM) for aid in AGENT_ORDER}
-
-    def _decode_agent_ids(self, id_onehot_batch):
-        """Convert one-hot rows back into agent ID strings, e.g. [1,0,0,0] -> 'A0'."""
-        indices = torch.argmax(id_onehot_batch, dim=1)
-        return [AGENT_ORDER[i] for i in indices.tolist()]
-
     @override(TorchModelV2)
     def forward(self, input_dict, state, seq_lens):
-        full_obs = input_dict["obs"].float()
-        device = full_obs.device  # <-- get whatever device this batch is actually on
+        full_obs = input_dict["obs"].float()  # shape: (batch, 27)
 
-        real_obs = full_obs[:, :OBS_DIM]
-        id_onehot = full_obs[:, OBS_DIM:]
+        own_obs = full_obs[:, :OBS_DIM]                                    # (batch, 9)
+        neighbor_obs = full_obs[:, OBS_DIM:]                                # (batch, 18)
+        neighbor_obs = neighbor_obs.view(-1, NUM_NEIGHBORS, OBS_DIM)        # (batch, 2, 9)
 
-        agent_ids = self._decode_agent_ids(id_onehot)
-        batch_size = real_obs.shape[0]
+        # Recompute neighbours' messages FRESH, right now, using the SAME encoder
+        # that's being trained -- this is what keeps everything within one
+        # self-contained computation graph, with nothing left over for a later
+        # backward pass to conflict with.
+        neighbor_msgs = self.encoder(neighbor_obs.reshape(-1, OBS_DIM))     # (batch*2, 8)
+        neighbor_msgs = neighbor_msgs.view(-1, NUM_NEIGHBORS, MSG_DIM)      # (batch, 2, 8)
+        mean_neighbor_msg = neighbor_msgs.mean(dim=1)                       # (batch, 8)
 
-        mean_neighbor_msgs = torch.zeros(batch_size, MSG_DIM, device=device)
-        for i in range(batch_size):
-            aid = agent_ids[i]
-            neighbor_msgs = torch.stack([self.message_cache[n].to(device).clone() for n in NEIGHBORS[aid]])
-            mean_neighbor_msgs[i] = neighbor_msgs.mean(dim=0)
-
-        policy_input = torch.cat([real_obs, mean_neighbor_msgs], dim=1)
+        policy_input = torch.cat([own_obs, mean_neighbor_msg], dim=1)      # (batch, 17)
         action_logits = self.policy_net(policy_input)
         self._last_value = self.value_head(policy_input).squeeze(1)
-
-        new_messages = self.encoder(real_obs)
-        for i in range(batch_size):
-            aid = agent_ids[i]
-            self.message_cache[aid] = new_messages[i].clone()  # <-- clone on write, not just on read
 
         return action_logits, state
 
