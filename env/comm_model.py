@@ -66,30 +66,47 @@ class E1CommModel(TorchModelV2, nn.Module):
 
     @override(TorchModelV2)
     def custom_loss(self, policy_loss, loss_inputs):
-        if self._last_own_messages is None or self._last_own_messages.shape[0] < 2:
+        print("=== custom_loss called ===")
+        print("policy_loss type:", type(policy_loss))
+        print("policy_loss value:", policy_loss)
+
+        if self._last_own_messages is None:
+            print("No messages stored, skipping")
+            return policy_loss
+
+        print("Messages shape:", self._last_own_messages.shape)
+        print("Messages sample:", self._last_own_messages[:2])
+        print("Any NaN in messages?", torch.isnan(self._last_own_messages).any().item())
+
+        if self._last_own_messages.shape[0] < 2:
             return policy_loss
 
         messages = self._last_own_messages
-
-        # Defensive check: skip penalty entirely if any message norm is too close to zero
         norms = messages.norm(dim=1)
+        print("Message norms:", norms)
+
         if (norms < 1e-6).any():
+            print("Norm too small, skipping penalty")
             return policy_loss
 
         normalized = F.normalize(messages, dim=1, eps=1e-6)
         similarity_matrix = torch.matmul(normalized, normalized.T)
-
         batch_size = similarity_matrix.shape[0]
         mask = ~torch.eye(batch_size, dtype=torch.bool, device=similarity_matrix.device)
         off_diagonal_similarities = similarity_matrix[mask]
-
         mean_similarity = off_diagonal_similarities.mean()
+        print("Mean similarity:", mean_similarity.item())
 
-        # Extra safety: if the penalty itself somehow became NaN/Inf, skip it rather than poison training
         diversity_penalty = DIVERSITY_WEIGHT * (mean_similarity ** 2)
+        print("Diversity penalty:", diversity_penalty.item())
+        print("Penalty is finite?", torch.isfinite(diversity_penalty).item())
+
         if not torch.isfinite(diversity_penalty):
             return policy_loss
 
         if isinstance(policy_loss, list):
-            return [pl + diversity_penalty for pl in policy_loss]
-        return policy_loss + diversity_penalty
+            result = [pl + diversity_penalty for pl in policy_loss]
+        else:
+            result = policy_loss + diversity_penalty
+        print("Returning loss, is it finite?", torch.isfinite(result).all().item() if not isinstance(result, list) else [torch.isfinite(r).all().item() for r in result])
+        return result
