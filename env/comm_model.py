@@ -66,18 +66,17 @@ class E1CommModel(TorchModelV2, nn.Module):
 
     @override(TorchModelV2)
     def custom_loss(self, policy_loss, loss_inputs):
-        """
-        Adds a diversity penalty: discourages different samples' messages
-        (within this training batch) from being too similar to each other,
-        directly counteracting the collapse we measured (mean cosine sim 0.9991).
-        """
         if self._last_own_messages is None or self._last_own_messages.shape[0] < 2:
-            return policy_loss  # not enough messages to compare, skip penalty safely
+            return policy_loss
 
-        messages = self._last_own_messages  # (batch, 8)
-        normalized = F.normalize(messages, dim=1)  # unit vectors, so dot product = cosine similarity
+        messages = self._last_own_messages
 
-        # Pairwise cosine similarity matrix: (batch, batch)
+        # Defensive check: skip penalty entirely if any message norm is too close to zero
+        norms = messages.norm(dim=1)
+        if (norms < 1e-6).any():
+            return policy_loss
+
+        normalized = F.normalize(messages, dim=1, eps=1e-6)
         similarity_matrix = torch.matmul(normalized, normalized.T)
 
         batch_size = similarity_matrix.shape[0]
@@ -85,7 +84,11 @@ class E1CommModel(TorchModelV2, nn.Module):
         off_diagonal_similarities = similarity_matrix[mask]
 
         mean_similarity = off_diagonal_similarities.mean()
-        diversity_penalty = DIVERSITY_WEIGHT * (mean_similarity ** 2)  # L2-style: square the similarity
+
+        # Extra safety: if the penalty itself somehow became NaN/Inf, skip it rather than poison training
+        diversity_penalty = DIVERSITY_WEIGHT * (mean_similarity ** 2)
+        if not torch.isfinite(diversity_penalty):
+            return policy_loss
 
         if isinstance(policy_loss, list):
             return [pl + diversity_penalty for pl in policy_loss]
