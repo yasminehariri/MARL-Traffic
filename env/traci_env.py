@@ -7,16 +7,28 @@ import sumolib
 os.environ["SUMO_HOME"] = os.path.dirname(sumolib.__file__)
 import traci
 
-# Network constants — confirmed Day 4
-TL_IDS = ["A0", "A1", "B0", "B1"] # the list of the four traffic-light IDs
-LANE_IDS = {
-    # 4 real incoming lanes per intersection: 2 internal (grid neighbours) + 2 external (fringe)
-    "A0": ["bottom0A0_0", "left0A0_0", "A1A0_0", "B0A0_0"],
-    "A1": ["left1A1_0", "top0A1_0", "A0A1_0", "B1A1_0"],
-    "B0": ["right0B0_0", "bottom1B0_0", "B1B0_0", "A0B0_0"],
-    "B1": ["right1B1_0", "top1B1_0", "B0B1_0", "A1B1_0"],
-}
-NUM_AGENTS = 4
+# Network constants 
+
+NET_FILE = os.environ.get("MARL_NET_FILE", "/content/MARL-Traffic/configs/mygrid2x2.net.xml")
+SUMO_CFG = os.environ.get("MARL_SUMO_CFG", "/content/MARL-Traffic/configs/simulation.sumocfg")
+
+def _derive_network_constants(net_path):
+    """Read traffic-light IDs and their incoming lanes straight from the network."""
+    net = sumolib.net.readNet(net_path)
+    tl_ids, lane_ids = [], {}
+    for tls in net.getTrafficLights():
+        tl_id = tls.getID()
+        lanes = sorted(set(conn[0].getID() for conn in tls.getConnections()))
+        if lanes:
+            tl_ids.append(tl_id)
+            lane_ids[tl_id] = lanes
+    tl_ids.sort()
+    return tl_ids, lane_ids
+
+TL_IDS, LANE_IDS = _derive_network_constants(NET_FILE)
+
+NUM_AGENTS = len(TL_IDS)
+
 OBS_DIM = 9      # 4 queue values + 4 phase indicators + 1 timer = 9
 PHASES = 4
 SUMO_CFG = "/content/MARL-Traffic/configs/simulation.sumocfg"
