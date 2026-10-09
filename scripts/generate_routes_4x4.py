@@ -11,6 +11,11 @@ All three scenarios are built the same way:
 Demand is matched to the 2x2 setup: ~112.5 veh/hr per fringe entry
 (2x2 had ~900 veh/hr over 8 entries; 4x4 has 16 entries -> ~1800 veh/hr).
 
+Vehicle mix (4x4 only): 80% cars, 10% delivery vans, 5% buses, 5% trucks,
+each with its own length, acceleration and top speed. The type of each
+vehicle is drawn from a SEPARATE random stream, so arrival times and
+destinations are identical to the cars-only files for the same seed.
+
 Usage in Colab (from the repo root):
   !python scripts/generate_routes_4x4.py --check          # seed 0 of each scenario + sanity check
   !python scripts/generate_routes_4x4.py --all            # all 3 scenarios x 10 seeds + sanity check
@@ -37,6 +42,20 @@ ASYM_RATIO = 4.0            # north entries get 4x the per-entry rate of the oth
 SEEDS = range(10)               # evaluation only, never seen in training
 TRAIN_SEEDS = range(100, 105)   # training only (Uniform), kept separate from evaluation
 SCENARIOS = ["uniform", "peak", "asym"]
+
+# id: (share, vType attributes). Lengths and speeds follow SUMO's own class
+# defaults for each vehicle class, so they are standard values, not invented.
+VEHICLE_MIX = {
+    "car":   (0.80, dict(vClass="passenger", guiShape="passenger", length="4.5",  minGap="2.5",
+                         accel="2.6", decel="4.5", maxSpeed="13.89", color="70,110,200")),
+    "van":   (0.10, dict(vClass="delivery",  guiShape="delivery",  length="6.5",  minGap="2.5",
+                         accel="2.0", decel="4.0", maxSpeed="13.89", color="230,230,230")),
+    "bus":   (0.05, dict(vClass="bus",       guiShape="bus",       length="12.0", minGap="3.0",
+                         accel="1.2", decel="4.0", maxSpeed="11.11", color="230,170,40")),
+    "truck": (0.05, dict(vClass="truck",     guiShape="truck",     length="10.0", minGap="3.0",
+                         accel="1.3", decel="4.0", maxSpeed="11.11", color="150,70,60")),
+}
+TYPE_SEED_OFFSET = 10_000  # vehicle types use their own random stream
 
 
 def fringe_edges(net):
@@ -88,8 +107,15 @@ def make_trips(net, scenario, seed, trips_path):
 
     trips.sort(key=lambda x: x[0])
     root = ET.Element("routes")
+    for tid, (_, attrs) in VEHICLE_MIX.items():
+        ET.SubElement(root, "vType", id=tid, attrib=attrs)
+
+    type_rng = random.Random(seed + TYPE_SEED_OFFSET)
+    type_ids = list(VEHICLE_MIX)
+    shares = [VEHICLE_MIX[t][0] for t in type_ids]
     for i, (depart, frm, to) in enumerate(trips):
-        ET.SubElement(root, "trip", id=f"{scenario}_{seed}_{i}", depart=f"{depart:.2f}",
+        vtype = type_rng.choices(type_ids, weights=shares)[0]
+        ET.SubElement(root, "trip", id=f"{scenario}_{seed}_{i}", type=vtype, depart=f"{depart:.2f}",
                       attrib={"from": frm, "to": to, "departLane": "best", "departSpeed": "max"})
     ET.ElementTree(root).write(trips_path)
     return len(trips)
@@ -108,12 +134,16 @@ def sanity_check(routes_path, label):
                          capture_output=True, text=True)
     teleports = len(re.findall(r"Teleporting", res.stderr))
     root = ET.parse(tripinfo).getroot()
-    waits = [float(t.get("waitingTime", 0)) for t in root.findall("tripinfo")]
+    infos = root.findall("tripinfo")
+    waits = [float(t.get("waitingTime", 0)) for t in infos]
+    mix = {}
+    for t in infos:
+        mix[t.get("vType")] = mix.get(t.get("vType"), 0) + 1
     os.remove(tripinfo)
     done = len(waits)
     mean = sum(waits) / done if done else float("nan")
     share = sum(1 for w in waits if w > 0) / done if done else 0
-    return done, mean, share, teleports
+    return done, mean, share, teleports, mix
 
 
 def build(scenario, seed, check):
@@ -124,8 +154,10 @@ def build(scenario, seed, check):
     os.remove(trips_path)
     line = f"{scenario:8s} seed{seed}: {n:5d} vehicles generated"
     if check:
-        done, mean, share, tp = sanity_check(routes_path, f"{scenario}_{seed}")
-        line += f" | completed {done:5d} | waited {share:5.1%} | mean wait {mean:7.2f}s | teleports {tp}"
+        done, mean, share, tp, mix = sanity_check(routes_path, f"{scenario}_{seed}")
+        mix_txt = " ".join(f"{k}:{mix.get(k, 0)}" for k in VEHICLE_MIX)
+        line += (f" | completed {done:5d} | waited {share:5.1%} | mean wait {mean:7.2f}s"
+                 f" | teleports {tp} | {mix_txt}")
     print(line, flush=True)
 
 
