@@ -44,7 +44,7 @@ class MARLTrafficEnvE1(MultiAgentEnv):
         self._agents = TL_IDS
         self._agent_ids = set(self._agents)
 
-        net_path = config.get("net_path", "/content/MARL-Traffic/configs/mygrid2x2.net.xml")
+        net_path = config.get("net_path", os.environ.get("MARL_NET_FILE", "/content/MARL-Traffic/configs/mygrid2x2.net.xml"))
         self.neighbors = config.get("neighbors_override") or build_neighbors_from_net(net_path, self._agents)
 
         single_obs = spaces.Box(low=0.0, high=1.0, shape=(E1_OBS_DIM,), dtype=np.float32)

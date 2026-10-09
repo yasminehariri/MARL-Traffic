@@ -14,6 +14,7 @@ Demand is matched to the 2x2 setup: ~112.5 veh/hr per fringe entry
 Usage in Colab (from the repo root):
   !python scripts/generate_routes_4x4.py --check          # seed 0 of each scenario + sanity check
   !python scripts/generate_routes_4x4.py --all            # all 3 scenarios x 10 seeds + sanity check
+  !python scripts/generate_routes_4x4.py --train          # Uniform training seeds 100-104 + sanity check
 """
 
 import argparse
@@ -33,7 +34,8 @@ PER_ENTRY_RATE = 112.5      # veh/hr per fringe entry (matched to 2x2)
 PEAK_WINDOW = (720, 1800)   # seconds where demand doubles (20%-50% of the episode)
 PEAK_MULTIPLIER = 2.0
 ASYM_RATIO = 4.0            # north entries get 4x the per-entry rate of the others
-SEEDS = range(10)
+SEEDS = range(10)               # evaluation only, never seen in training
+TRAIN_SEEDS = range(100, 105)   # training only (Uniform), kept separate from evaluation
 SCENARIOS = ["uniform", "peak", "asym"]
 
 
@@ -132,9 +134,14 @@ if __name__ == "__main__":
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--check", action="store_true", help="seed 0 of each scenario, with sanity check")
     g.add_argument("--all", action="store_true", help="all scenarios x 10 seeds, with sanity check")
+    g.add_argument("--train", action="store_true", help="Uniform training seeds 100-104, with sanity check")
     a = p.parse_args()
 
-    seeds = [0] if a.check else SEEDS
-    for sc in SCENARIOS:
-        for s in seeds:
-            build(sc, s, check=True)
+    if a.train:
+        for s in TRAIN_SEEDS:
+            build("uniform", s, check=True)
+    else:
+        seeds = [0] if a.check else SEEDS
+        for sc in SCENARIOS:
+            for s in seeds:
+                build(sc, s, check=True)

@@ -6,6 +6,7 @@ import os
 import sumolib
 os.environ["SUMO_HOME"] = os.path.dirname(sumolib.__file__)
 import traci
+import random
 
 # Network constants 
 
@@ -49,8 +50,13 @@ class TraCIEnv:
         self.pending = {tl: 0 for tl in TL_IDS}
         self.yellow_left = {tl: 0 for tl in TL_IDS}
         self.elapsed = {tl: 0 for tl in TL_IDS}
+        self._rng = random.Random(int(os.environ.get("MARL_ROUTE_SEED", "0")))
 
     def reset(self, route_file=None):
+        # Allow a list of route files: pick one per episode (training seeds)
+        if isinstance(route_file, (list, tuple)):
+            route_file = self._rng.choice(route_file)
+        self.current_route_file = route_file
         if traci.isLoaded():
             traci.close()
         cmd = ["sumo", "-c", SUMO_CFG, "--tripinfo-output.write-unfinished"]
