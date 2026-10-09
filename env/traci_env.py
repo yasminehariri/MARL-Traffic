@@ -32,7 +32,6 @@ NUM_AGENTS = len(TL_IDS)
 
 OBS_DIM = 9      # 4 queue values + 4 phase indicators + 1 timer = 9
 PHASES = 4
-SUMO_CFG = "/content/MARL-Traffic/configs/simulation.sumocfg"
 MAX_PHASE_DURATION = 90.0
 MAX_QUEUE = 20.0
 
