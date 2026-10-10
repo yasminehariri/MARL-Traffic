@@ -25,6 +25,7 @@ p.add_argument("--cond", required=True, choices=["B1", "B2", "E1"])
 p.add_argument("--ckpt", required=True)
 p.add_argument("--route", required=True)
 p.add_argument("--steps", type=int, default=900)
+p.add_argument("--explore", action="store_true", help="sample actions (as in training)")
 args = p.parse_args()
 
 os.environ["MARL_NET_FILE"] = f"{REPO}/configs/mygrid4x4.net.xml"
@@ -138,13 +139,13 @@ def main():
     except Exception:
         pass
 
-    trained = lambda obs: {aid: algo.compute_single_action(o, policy_id="shared_policy", explore=False)
+    trained = lambda obs: {aid: algo.compute_single_action(o, policy_id="shared_policy", explore=args.explore)
                            for aid, o in obs.items()}
     rnd = random.Random(0)
     n_actions = env.action_space.n if hasattr(env, "action_space") and hasattr(env.action_space, "n") else 4
     randomly = lambda obs: {aid: rnd.randrange(n_actions) for aid in obs}
 
-    run(env, trained, f"{args.cond} trained, deterministic")
+    run(env, trained, f"{args.cond} trained, {'sampled' if args.explore else 'deterministic'}")
     run(env, randomly, "Random actions (control test)")
     algo.stop()
     ray.shutdown()

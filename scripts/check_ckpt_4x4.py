@@ -25,6 +25,8 @@ p = argparse.ArgumentParser()
 p.add_argument("--cond", required=True, choices=["B1", "B2", "E1"])
 p.add_argument("--ckpt", required=True)
 p.add_argument("--route", required=True)
+p.add_argument("--explore", action="store_true",
+               help="sample actions from the policy (as in training) instead of always taking the most likely one")
 args = p.parse_args()
 
 os.environ["MARL_NET_FILE"] = f"{REPO}/configs/mygrid4x4.net.xml"
@@ -40,21 +42,27 @@ from ray.rllib.models import ModelCatalog  # noqa: E402
 TRIPINFO = f"{REPO}/configs/tripinfo.xml"  # written by simulation_4x4.sumocfg
 
 
-def wait_stats(path):
+def wait_stats(path, route=None):
+    """Returns mean wait of finished vehicles, #finished, #entered, and TRUE delay:
+    waiting + insertion delay for every generated vehicle; a vehicle that never
+    entered counts as waiting from its planned departure until the end (3600 s)."""
     infos = ET.parse(path).getroot().findall("tripinfo")
     done = [float(t.get("waitingTime", 0)) for t in infos if float(t.get("arrival", -1)) >= 0]
-    allv = [float(t.get("waitingTime", 0)) for t in infos]
-    return (sum(done) / len(done), len(done), sum(allv) / len(allv), len(allv))
+    seen = {t.get("id"): float(t.get("waitingTime", 0)) + float(t.get("departDelay", 0)) for t in infos}
+    planned = {v.get("id"): float(v.get("depart"))
+               for v in ET.parse(route or args.route).getroot().iter("vehicle")}
+    true = [seen.get(v, 3600.0 - d) for v, d in planned.items() if d < 3600]
+    return (sum(done) / len(done), len(done), len(seen), sum(true) / len(true), len(true))
 
 
 def fixed_time(route):
     out = f"{REPO}/configs/tripinfo_fixed_check.xml"
-    subprocess.run(["sumo", "-n", os.environ["MARL_NET_FILE"], "-r", route, "--end", "3600",
-                    "--tripinfo-output", out, "--tripinfo-output.write-unfinished",
-                    "--no-step-log"], capture_output=True, check=True)
-    s = wait_stats(out)
+    res = subprocess.run(["sumo", "-n", os.environ["MARL_NET_FILE"], "-r", route, "--end", "3600",
+                          "--tripinfo-output", out, "--tripinfo-output.write-unfinished",
+                          "--no-step-log"], capture_output=True, text=True, check=True)
+    s = wait_stats(out, route)
     os.remove(out)
-    return s
+    return s + (res.stderr.count("Teleporting"),)
 
 
 def build(cond):
@@ -95,11 +103,12 @@ def main():
 
     env = Env({"route_file": args.route})
     obs, _ = env.reset()
-    t0, steps, done = time.time(), 0, False
+    t0, steps, done, teleports = time.time(), 0, False, 0
     while not done:
-        acts = {aid: algo.compute_single_action(o, policy_id="shared_policy", explore=False)
+        acts = {aid: algo.compute_single_action(o, policy_id="shared_policy", explore=args.explore)
                 for aid, o in obs.items()}
         obs, _, term, trunc, _ = env.step(acts)
+        teleports += traci.simulation.getStartingTeleportNumber()
         steps += 1
         done = term.get("__all__", False) or trunc.get("__all__", False)
     try:
@@ -108,13 +117,14 @@ def main():
         pass
     time.sleep(1)
 
-    a_done, n_done, a_all, n_all = wait_stats(TRIPINFO)
-    f_done, fn_done, f_all, fn_all = fixed_time(args.route)
-    print(f"\nRoute: {os.path.basename(args.route)} | {steps} steps | {time.time()-t0:.0f}s")
-    print(f"{'':12s} {'mean wait (finished)':>22s} {'finished':>9s} {'mean wait (all)':>16s}")
-    print(f"{'Fixed-time':12s} {f_done:20.2f}s {fn_done:9d} {f_all:14.2f}s")
-    print(f"{args.cond:12s} {a_done:20.2f}s {n_done:9d} {a_all:14.2f}s")
-    print(f"Change vs fixed-time (finished vehicles): {100*(a_done-f_done)/f_done:+.1f}%")
+    a_fin, a_n, a_in, a_true, gen = wait_stats(TRIPINFO)
+    f_fin, f_n, f_in, f_true, _, f_tp = fixed_time(args.route)
+    mode = "sampled (as trained)" if args.explore else "deterministic"
+    print(f"\nRoute: {os.path.basename(args.route)} | {steps} steps | {time.time()-t0:.0f}s | policy {mode}")
+    print(f"{'':12s} {'entered':>9s} {'finished':>9s} {'wait (finished)':>16s} {'TRUE delay (all)':>17s} {'teleports':>10s}")
+    print(f"{'Fixed-time':12s} {f_in:5d}/{gen:<4d} {f_n:9d} {f_fin:15.2f}s {f_true:16.2f}s {f_tp:10d}")
+    print(f"{args.cond:12s} {a_in:5d}/{gen:<4d} {a_n:9d} {a_fin:15.2f}s {a_true:16.2f}s {teleports:10d}")
+    print(f"Change vs fixed-time (TRUE delay, every vehicle): {100*(a_true-f_true)/f_true:+.1f}%")
     algo.stop()
     ray.shutdown()
 
