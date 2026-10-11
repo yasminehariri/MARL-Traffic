@@ -7,7 +7,7 @@ from gymnasium import spaces
 from env.traci_env import TraCIEnv, TL_IDS, OBS_DIM, PHASES
 from env.rllib_env_e1 import build_neighbors_from_net
 
-MSG_DIM = 4          # [queue_N, queue_S, queue_E, queue_W] — raw, no learning
+MSG_DIM = 4          # neighbours' mean queues in action order [N, E, S, W] — raw, no learning
 B2_OBS_DIM = OBS_DIM + MSG_DIM  # 9 + 4 = 13
 
 
@@ -49,7 +49,7 @@ class MARLTrafficEnvB2(MultiAgentEnv):
         messages = self._env.get_messages()
         augmented_obs = self._build_augmented_obs(obs, messages)
 
-        rewards = {tl: reward / len(self._agents) for tl in self._agents}
+        rewards = self._env.agent_rewards(reward)
         dones = {tl: done for tl in self._agents}
         dones["__all__"] = done
         truncated = {tl: False for tl in self._agents}

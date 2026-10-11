@@ -1,45 +1,72 @@
 import os
+import random
 
 # Point SUMO_HOME at the installed sumo package so SUMO finds its XSD schemas
 # and can validate the network/route XML (portable across machines/venvs).
-import os
 import sumolib
 os.environ["SUMO_HOME"] = os.path.dirname(sumolib.__file__)
 import traci
-import random
 
-# Network constants 
+# Network constants
 
 NET_FILE = os.environ.get("MARL_NET_FILE", "/content/MARL-Traffic/configs/mygrid2x2.net.xml")
 SUMO_CFG = os.environ.get("MARL_SUMO_CFG", "/content/MARL-Traffic/configs/simulation.sumocfg")
 
+# The net defines 8 phases per light: green phases at even indices (the agent's
+# 4 actions) each followed by a 3s yellow phase at the next odd index.
+GREEN_PHASES = [0, 2, 4, 6]  # action k -> green phase GREEN_PHASES[k]
+PHASES = 4
+YELLOW_TIME = 3  # simulation steps of yellow inserted on every phase change
+
+OBS_DIM = 9      # 4 queue values + 4 phase indicators + 1 timer = 9
+
+# Reward given to each agent:
+#   "team"  (default, the original design): every agent gets global_reward / N
+#   "local": each agent gets minus the waiting time on its own incoming lanes
+REWARD_MODE = os.environ.get("MARL_REWARD", "team")
+if REWARD_MODE not in ("team", "local"):
+    raise ValueError(f"MARL_REWARD must be 'team' or 'local', got {REWARD_MODE!r}")
+MAX_PHASE_DURATION = 90.0
+MAX_QUEUE = 20.0
+
+
 def _derive_network_constants(net_path):
-    """Read traffic-light IDs and their incoming lanes straight from the network."""
-    net = sumolib.net.readNet(net_path)
+    """Read traffic-light IDs and their incoming lanes straight from the network.
+
+    LANE_IDS[tl][k] is the incoming lane that receives green under action k
+    (green phase GREEN_PHASES[k]). This keeps queue slot k aligned with action k
+    for EVERY agent, which a shared policy needs. (Earlier versions sorted lanes
+    alphabetically, which gave each light a different slot-to-action mapping.)
+    """
+    net = sumolib.net.readNet(net_path, withPrograms=True)
     tl_ids, lane_ids = [], {}
     for tls in net.getTrafficLights():
         tl_id = tls.getID()
-        lanes = sorted(set(conn[0].getID() for conn in tls.getConnections()))
-        if lanes:
-            tl_ids.append(tl_id)
-            lane_ids[tl_id] = lanes
+        links = sorted(tls.getConnections(), key=lambda c: c[2])  # by link index
+        if not links:
+            continue
+        program = list(tls.getPrograms().values())[0]
+        phases = program.getPhases()
+        ordered = []
+        for g in GREEN_PHASES:
+            state = phases[g].state
+            served = sorted({links[i][0].getID() for i, s in enumerate(state) if s in "Gg"})
+            if len(served) != 1:
+                raise ValueError(f"{tl_id}: green phase {g} serves {served}; expected exactly one "
+                                 f"incoming lane per green phase")
+            ordered.append(served[0])
+        if len(set(ordered)) != len(ordered):
+            raise ValueError(f"{tl_id}: two actions serve the same lane: {ordered}")
+        tl_ids.append(tl_id)
+        lane_ids[tl_id] = ordered
     tl_ids.sort()
     return tl_ids, lane_ids
+
 
 TL_IDS, LANE_IDS = _derive_network_constants(NET_FILE)
 
 NUM_AGENTS = len(TL_IDS)
 
-OBS_DIM = 9      # 4 queue values + 4 phase indicators + 1 timer = 9
-PHASES = 4
-MAX_PHASE_DURATION = 90.0
-MAX_QUEUE = 20.0
-
-# The net defines 8 phases per light: green phases at even indices (the agent's
-# 4 actions) each followed by a 3s yellow phase at the next odd index.
-GREEN_PHASES = [0, 2, 4, 6]  # GG, Gr, rG, rG2 — four agent green choices
-PHASES = 4
-YELLOW_TIME = 3  # simulation steps of yellow inserted on every phase change
 
 class TraCIEnv:
     def __init__(self):
@@ -114,7 +141,8 @@ class TraCIEnv:
         """
         Hand-crafted communication (B2): each agent's raw queue readings,
         to be broadcast to its neighbours as-is (no learning, no encoding).
-        Returns {tl_id: [q0, q1, q2, q3]} — same 4 real queue values used in get_obs().
+        Returns {tl_id: [q0, q1, q2, q3]} — same 4 real queue values used in get_obs(),
+        in action order (q_k = queue on the lane that action k turns green).
         """
         messages = {}
         for tl_id in self.agents:
@@ -125,8 +153,15 @@ class TraCIEnv:
 
     def get_reward(self):
         total_wait = 0.0
+        self.last_local = {}
         for tl_id in self.agents:
-            for lane in LANE_IDS[tl_id]:
-                total_wait += traci.lane.getWaitingTime(lane)
+            w = sum(traci.lane.getWaitingTime(lane) for lane in LANE_IDS[tl_id])
+            self.last_local[tl_id] = -w
+            total_wait += w
         return -total_wait
 
+    def agent_rewards(self, global_reward):
+        """Per-agent rewards for the RLlib wrappers, according to MARL_REWARD."""
+        if REWARD_MODE == "local":
+            return dict(self.last_local)
+        return {tl: global_reward / len(self.agents) for tl in self.agents}

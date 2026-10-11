@@ -4,36 +4,50 @@ sys.path.insert(0, '/content/MARL-Traffic')
 import numpy as np
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from gymnasium import spaces
-from env.traci_env import TraCIEnv, TL_IDS, OBS_DIM, PHASES
+from env.traci_env import TraCIEnv, TL_IDS, OBS_DIM, PHASES, LANE_IDS
 
-MAX_NEIGHBORS = 4  # true max degree on a 4x4 grid (interior intersections)
+MAX_NEIGHBORS = 4  # one slot per approach direction (N, E, S, W)
 E1_OBS_DIM = OBS_DIM + (MAX_NEIGHBORS * OBS_DIM) + MAX_NEIGHBORS  # 9 + 36 + 4 = 49
+
+
+def build_neighbor_slots(net_path, tl_ids):
+    """
+    Direction-consistent neighbour slots, derived from the network file.
+
+    slots[tl][k] is the traffic light whose outgoing edge feeds the lane that
+    action k turns green (LANE_IDS[tl][k]), or None if that lane comes from
+    outside the grid. Because LANE_IDS is in action order (N, E, S, W for every
+    light), slot k means the same direction for every agent, which a shared
+    policy needs. Missing directions are padded and masked.
+    """
+    import sumolib
+    net = sumolib.net.readNet(net_path)
+    slots = {}
+    for tl in tl_ids:
+        row = []
+        for lane_id in LANE_IDS[tl]:
+            upstream = net.getLane(lane_id).getEdge().getFromNode().getID()
+            row.append(upstream if (upstream in tl_ids and upstream != tl) else None)
+        slots[tl] = row
+    return slots
 
 
 def build_neighbors_from_net(net_path, tl_ids):
     """
-    Auto-derives the NEIGHBORS mapping from the actual network file, rather
-    than hand-typing it -- avoids drift/error at 16+ nodes. A traffic light
-    B is a 'neighbor' of A if an edge directly connects their junctions.
+    Real neighbours of each light (no padding), in the same direction order as
+    build_neighbor_slots. A traffic light B is a neighbour of A if an edge
+    directly connects their junctions. Used by B2 and by checks.
     """
-    import sumolib
-    net = sumolib.net.readNet(net_path)
-    neighbors = {tl: [] for tl in tl_ids}
-    for edge in net.getEdges():
-        from_node = edge.getFromNode().getID()
-        to_node = edge.getToNode().getID()
-        if from_node in neighbors and to_node in neighbors and from_node != to_node:
-            if to_node not in neighbors[from_node]:
-                neighbors[from_node].append(to_node)
-    return neighbors
+    slots = build_neighbor_slots(net_path, tl_ids)
+    return {tl: [n for n in slots[tl] if n is not None] for tl in tl_ids}
 
 
 class MARLTrafficEnvE1(MultiAgentEnv):
     """
     Stateless E1 environment wrapper, generalized for variable neighbor
     counts (2x2 through 4x4+). Each agent's observation bundles its own
-    9-dim obs, its neighbours' raw 9-dim obs padded to MAX_NEIGHBORS slots,
-    and a mask indicating which slots are real neighbours vs. padding.
+    9-dim obs, its neighbours' raw 9-dim obs in fixed direction slots
+    (N, E, S, W), and a mask indicating which slots are real neighbours.
     """
 
     def __init__(self, config=None):
@@ -45,7 +59,8 @@ class MARLTrafficEnvE1(MultiAgentEnv):
         self._agent_ids = set(self._agents)
 
         net_path = config.get("net_path", os.environ.get("MARL_NET_FILE", "/content/MARL-Traffic/configs/mygrid2x2.net.xml"))
-        self.neighbors = config.get("neighbors_override") or build_neighbors_from_net(net_path, self._agents)
+        self.neighbor_slots = build_neighbor_slots(net_path, self._agents)
+        self.neighbors = {tl: [n for n in self.neighbor_slots[tl] if n is not None] for tl in self._agents}
 
         single_obs = spaces.Box(low=0.0, high=1.0, shape=(E1_OBS_DIM,), dtype=np.float32)
         single_act = spaces.Discrete(PHASES)
@@ -58,15 +73,13 @@ class MARLTrafficEnvE1(MultiAgentEnv):
     def _bundle_with_neighbors(self, obs):
         bundled = {}
         for tl_id, own_vec in obs.items():
-            real_neighbors = self.neighbors.get(tl_id, [])
-            num_real = len(real_neighbors)
-
             neighbor_block = np.zeros(MAX_NEIGHBORS * OBS_DIM, dtype=np.float32)
             mask = np.zeros(MAX_NEIGHBORS, dtype=np.float32)
 
-            for i, n_id in enumerate(real_neighbors[:MAX_NEIGHBORS]):
-                neighbor_block[i * OBS_DIM:(i + 1) * OBS_DIM] = obs[n_id]
-                mask[i] = 1.0
+            for k, n_id in enumerate(self.neighbor_slots[tl_id]):
+                if n_id is not None:
+                    neighbor_block[k * OBS_DIM:(k + 1) * OBS_DIM] = obs[n_id]
+                    mask[k] = 1.0
 
             full = np.concatenate([own_vec, neighbor_block, mask]).astype(np.float32)
             bundled[tl_id] = full
@@ -81,7 +94,7 @@ class MARLTrafficEnvE1(MultiAgentEnv):
         obs, reward, done, info = self._env.step(actions)
         bundled_obs = self._bundle_with_neighbors(obs)
 
-        rewards = {tl: reward / len(self._agents) for tl in self._agents}
+        rewards = self._env.agent_rewards(reward)
         dones = {tl: done for tl in self._agents}
         dones["__all__"] = done
         truncated = {tl: False for tl in self._agents}

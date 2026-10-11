@@ -1,5 +1,5 @@
 """
-Train one condition (B1, B2 or E1) on the 4x4 grid, with safe checkpoints.
+Train one condition (B1, B2 or E1) on the 4x4 (or 2x2) grid, with safe checkpoints.
 
 Runs as its own process, so every run starts clean (no stale imports, no
 leftover Ray or TraCI state). Saves to Drive as it goes and can resume from
@@ -16,7 +16,11 @@ Colab usage (after the setup cell: repo pulled, packages installed, Drive mounte
     # 3) after a disconnect: same command plus --resume
     !python scripts/train_4x4.py --cond E1 --steps 500000 --resume
 
-Outputs (default: /content/drive/MyDrive/MARL_checkpoints/4x4/<COND>/):
+Options added after the lane-order fix:
+    --reward team|local   (default team, the original design)
+    --grid 4x4|2x2        (default 4x4)
+
+Outputs (default: /content/drive/MyDrive/MARL_checkpoints/<GRID>/<COND>_<REWARD>/):
     checkpoints/ckpt_000010, ckpt_000020, ...   model checkpoints (last 3 kept, plus every 100th)
     progress.csv                                one row per training iteration
     state.json                                  iteration, total env steps, last checkpoint
@@ -44,18 +48,24 @@ def parse_args():
     p.add_argument("--ckpt-every", type=int, default=10, help="save a checkpoint every N iterations")
     p.add_argument("--seed", type=int, default=0, help="training seed (RLlib + route picking)")
     p.add_argument("--train-seeds", default="100,101,102,103,104", help="Uniform route seeds used for training")
+    p.add_argument("--reward", default="team", choices=["team", "local"],
+                   help="team: every agent gets global/N (original); local: own-lane waiting")
+    p.add_argument("--grid", default="4x4", choices=["4x4", "2x2"])
     return p.parse_args()
 
 
 args = parse_args()
-OUT = args.out or f"/content/drive/MyDrive/MARL_checkpoints/4x4/{args.cond}"
+OUT = args.out or f"/content/drive/MyDrive/MARL_checkpoints/{args.grid}/{args.cond}_{args.reward}"
 CKPT_DIR = os.path.join(OUT, "checkpoints")
 os.makedirs(CKPT_DIR, exist_ok=True)
 
 # --- Grid selection MUST happen before any env import ---
-os.environ["MARL_NET_FILE"] = f"{REPO}/configs/mygrid4x4.net.xml"
-os.environ["MARL_SUMO_CFG"] = f"{REPO}/configs/simulation_4x4.sumocfg"
+GRID = {"4x4": ("mygrid4x4.net.xml", "simulation_4x4.sumocfg", 16),
+        "2x2": ("mygrid2x2.net.xml", "simulation.sumocfg", 4)}[args.grid]
+os.environ["MARL_NET_FILE"] = f"{REPO}/configs/{GRID[0]}"
+os.environ["MARL_SUMO_CFG"] = f"{REPO}/configs/{GRID[1]}"
 os.environ["MARL_ROUTE_SEED"] = str(args.seed)
+os.environ["MARL_REWARD"] = args.reward
 sys.path.insert(0, REPO)
 
 import ray  # noqa: E402
@@ -63,19 +73,23 @@ import torch  # noqa: E402
 from ray.rllib.algorithms.ppo import PPOConfig  # noqa: E402
 from ray.rllib.models import ModelCatalog  # noqa: E402
 
-TRAIN_ROUTES = [f"{REPO}/configs/routes_4x4_uniform_seed{s}.rou.xml"
+TRAIN_ROUTES = [f"{REPO}/configs/routes_{args.grid}_uniform_seed{s}.rou.xml"
                 for s in args.train_seeds.split(",")]
 missing = [r for r in TRAIN_ROUTES if not os.path.exists(r)]
 if missing:
-    sys.exit(f"Missing training route files: {missing}\nRun: python scripts/generate_routes_4x4.py --train")
+    sys.exit(f"Missing training route files: {missing}")
 
 NUM_GPUS = 1 if torch.cuda.is_available() else 0
 
 
 def build_config():
-    from env.traci_env import NUM_AGENTS, SUMO_CFG
-    assert NUM_AGENTS == 16, f"Expected 16 agents on the 4x4 grid, got {NUM_AGENTS}"
-    assert SUMO_CFG.endswith("simulation_4x4.sumocfg"), f"Wrong SUMO config: {SUMO_CFG}"
+    from env.traci_env import NUM_AGENTS, SUMO_CFG, REWARD_MODE, LANE_IDS
+    assert NUM_AGENTS == GRID[2], f"Expected {GRID[2]} agents on the {args.grid} grid, got {NUM_AGENTS}"
+    assert SUMO_CFG.endswith(GRID[1]), f"Wrong SUMO config: {SUMO_CFG}"
+    assert REWARD_MODE == args.reward, f"Reward mode mismatch: {REWARD_MODE} vs {args.reward}"
+    # LANE_IDS is built in action order and validated at import; print one light as a visible check
+    first = sorted(LANE_IDS)[0]
+    print(f"[{args.cond}] grid {args.grid} | reward {REWARD_MODE} | {first} lanes in action order: {LANE_IDS[first]}", flush=True)
 
     training = dict(lr=3e-4, clip_param=0.2, vf_loss_coeff=0.5, entropy_coeff=0.01,
                     gamma=0.99, lambda_=0.95, train_batch_size=512, num_epochs=4)
@@ -165,7 +179,8 @@ def main():
               f"(iteration {state['iteration']}, {state['total_steps']} steps)", flush=True)
 
     with open(os.path.join(OUT, "run_info.json"), "w") as f:
-        json.dump({"cond": args.cond, "target_steps": args.steps, "seed": args.seed,
+        json.dump({"cond": args.cond, "grid": args.grid, "reward": args.reward,
+                   "target_steps": args.steps, "seed": args.seed,
                    "train_routes": TRAIN_ROUTES, "gpus": NUM_GPUS,
                    "torch": torch.__version__, "ray": ray.__version__,
                    "started": time.strftime("%Y-%m-%d %H:%M:%S")}, f, indent=2)
