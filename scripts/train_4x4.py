@@ -17,7 +17,8 @@ Colab usage (after the setup cell: repo pulled, packages installed, Drive mounte
     !python scripts/train_4x4.py --cond E1 --steps 500000 --resume
 
 Options added after the lane-order fix:
-    --reward team|local   (default team, the original design)
+    --reward team|local|neighbourhood   (default team, the original design)
+    --train-scenarios uniform|uniform,peak,asym   (default uniform)
     --grid 4x4|2x2        (default 4x4)
 
 Outputs (default: /content/drive/MyDrive/MARL_checkpoints/<GRID>/<COND>_<REWARD>/):
@@ -48,8 +49,10 @@ def parse_args():
     p.add_argument("--ckpt-every", type=int, default=10, help="save a checkpoint every N iterations")
     p.add_argument("--seed", type=int, default=0, help="training seed (RLlib + route picking)")
     p.add_argument("--train-seeds", default="100,101,102,103,104", help="Uniform route seeds used for training")
-    p.add_argument("--reward", default="team", choices=["team", "local"],
-                   help="team: every agent gets global/N (original); local: own-lane waiting")
+    p.add_argument("--reward", default="team", choices=["team", "local", "neighbourhood"],
+                   help="team: global/N (original); local: own-lane waiting; neighbourhood: own + 0.5 x neighbours")
+    p.add_argument("--train-scenarios", default="uniform",
+                   help="comma list of scenarios whose training seeds are used, e.g. uniform,peak,asym")
     p.add_argument("--grid", default="4x4", choices=["4x4", "2x2"])
     return p.parse_args()
 
@@ -73,7 +76,8 @@ import torch  # noqa: E402
 from ray.rllib.algorithms.ppo import PPOConfig  # noqa: E402
 from ray.rllib.models import ModelCatalog  # noqa: E402
 
-TRAIN_ROUTES = [f"{REPO}/configs/routes_{args.grid}_uniform_seed{s}.rou.xml"
+TRAIN_ROUTES = [f"{REPO}/configs/routes_{args.grid}_{sc}_seed{s}.rou.xml"
+                for sc in args.train_scenarios.split(",")
                 for s in args.train_seeds.split(",")]
 missing = [r for r in TRAIN_ROUTES if not os.path.exists(r)]
 if missing:
@@ -180,6 +184,7 @@ def main():
 
     with open(os.path.join(OUT, "run_info.json"), "w") as f:
         json.dump({"cond": args.cond, "grid": args.grid, "reward": args.reward,
+                   "train_scenarios": args.train_scenarios,
                    "target_steps": args.steps, "seed": args.seed,
                    "train_routes": TRAIN_ROUTES, "gpus": NUM_GPUS,
                    "torch": torch.__version__, "ray": ray.__version__,

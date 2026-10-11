@@ -20,6 +20,7 @@ Usage in Colab (from the repo root):
   !python scripts/generate_routes_4x4.py --check          # seed 0 of each scenario + sanity check
   !python scripts/generate_routes_4x4.py --all            # all 3 scenarios x 10 seeds + sanity check
   !python scripts/generate_routes_4x4.py --train          # Uniform training seeds 100-104 + sanity check
+  !python scripts/generate_routes_4x4.py --train-all      # Peak + Asymmetric training seeds 100-104 + sanity check
 """
 
 import argparse
@@ -167,11 +168,17 @@ if __name__ == "__main__":
     g.add_argument("--check", action="store_true", help="seed 0 of each scenario, with sanity check")
     g.add_argument("--all", action="store_true", help="all scenarios x 10 seeds, with sanity check")
     g.add_argument("--train", action="store_true", help="Uniform training seeds 100-104, with sanity check")
+    g.add_argument("--train-all", dest="train_all", action="store_true",
+                   help="Peak and Asymmetric training seeds 100-104 (Uniform ones come from --train)")
     a = p.parse_args()
 
     if a.train:
         for s in TRAIN_SEEDS:
             build("uniform", s, check=True)
+    elif a.train_all:
+        for sc in ("peak", "asym"):
+            for s in TRAIN_SEEDS:
+                build(sc, s, check=True)
     else:
         seeds = [0] if a.check else SEEDS
         for sc in SCENARIOS:

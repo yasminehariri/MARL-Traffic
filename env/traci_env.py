@@ -23,9 +23,12 @@ OBS_DIM = 9      # 4 queue values + 4 phase indicators + 1 timer = 9
 # Reward given to each agent:
 #   "team"  (default, the original design): every agent gets global_reward / N
 #   "local": each agent gets minus the waiting time on its own incoming lanes
+#   "neighbourhood": own local reward + ALPHA * sum of direct neighbours' local
+#                    rewards (spatially discounted reward, as in MA2C, Chu et al. 2019)
 REWARD_MODE = os.environ.get("MARL_REWARD", "team")
-if REWARD_MODE not in ("team", "local"):
-    raise ValueError(f"MARL_REWARD must be 'team' or 'local', got {REWARD_MODE!r}")
+if REWARD_MODE not in ("team", "local", "neighbourhood"):
+    raise ValueError(f"MARL_REWARD must be 'team', 'local' or 'neighbourhood', got {REWARD_MODE!r}")
+REWARD_ALPHA = float(os.environ.get("MARL_REWARD_ALPHA", "0.5"))
 MAX_PHASE_DURATION = 90.0
 MAX_QUEUE = 20.0
 
@@ -64,6 +67,23 @@ def _derive_network_constants(net_path):
 
 
 TL_IDS, LANE_IDS = _derive_network_constants(NET_FILE)
+
+
+def _derive_adjacent_lights(net_path, tl_ids, lane_ids):
+    """Direct neighbours: lights whose outgoing edge feeds one of my incoming lanes."""
+    net = sumolib.net.readNet(net_path)
+    adj = {}
+    for tl in tl_ids:
+        ups = []
+        for lane in lane_ids[tl]:
+            u = net.getLane(lane).getEdge().getFromNode().getID()
+            if u in tl_ids and u != tl and u not in ups:
+                ups.append(u)
+        adj[tl] = ups
+    return adj
+
+
+ADJACENT = _derive_adjacent_lights(NET_FILE, TL_IDS, LANE_IDS)
 
 NUM_AGENTS = len(TL_IDS)
 
@@ -164,4 +184,7 @@ class TraCIEnv:
         """Per-agent rewards for the RLlib wrappers, according to MARL_REWARD."""
         if REWARD_MODE == "local":
             return dict(self.last_local)
+        if REWARD_MODE == "neighbourhood":
+            return {tl: self.last_local[tl] + REWARD_ALPHA * sum(self.last_local[n] for n in ADJACENT[tl])
+                    for tl in self.agents}
         return {tl: global_reward / len(self.agents) for tl in self.agents}
