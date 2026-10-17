@@ -185,6 +185,9 @@ def main():
     for sc, s in todo:
         route = f"{REPO}/configs/routes_4x4_{sc}_seed{s}.rou.xml"
         t0 = time.time()
+        if args.explore:  # reproducible sampling: same seed -> same sampled actions
+            import numpy as np, torch
+            torch.manual_seed(s); np.random.seed(s); random.seed(s)
         if args.cond == "fixed":
             m = run_fixed(route)
         else:
