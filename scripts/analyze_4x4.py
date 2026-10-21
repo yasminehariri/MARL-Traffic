@@ -23,6 +23,10 @@ p.add_argument("csvs", nargs="+")
 p.add_argument("--out", default="results/4x4_final")
 p.add_argument("--focus", default="E1", help="label compared against every other label")
 p.add_argument("--metric", default="true_delay")
+p.add_argument("--mode", default="greedy", choices=["greedy", "sampled"],
+               help="greedy: trained agents pick their most likely action (labels B1/B2/E1); "
+                    "sampled: trained agents sample actions (labels B1_explore/... renamed to B1/...). "
+                    "Baselines (fixed/tuned/random) are the same in both modes.")
 args = p.parse_args()
 os.makedirs(args.out, exist_ok=True)
 
@@ -33,7 +37,18 @@ NAMES = {"E1": "E1 learned comm", "B1": "B1 no comm", "B2": "B2 hand-crafted com
 
 # ---------- merge and sanity checks ----------
 df = pd.concat([pd.read_csv(c) for c in args.csvs], ignore_index=True)
-dup = df.duplicated(["label", "scenario", "seed"], keep=False)
+TRAINED = ["E1", "B1", "B2"]
+if args.mode == "sampled":
+    df = df[~df.label.isin(TRAINED)].copy()  # drop greedy rows of trained agents
+    df["label"] = df.label.str.replace("_explore", "", regex=False)
+else:
+    df = df[~df.label.str.endswith("_explore")].copy()
+for l in TRAINED:
+    sub = df[df.label == l]
+    if len(sub) and sub.explore.nunique() == 1 and int(sub.explore.iloc[0]) != int(args.mode == "sampled"):
+        raise SystemExit(f"{l}: rows have explore={sub.explore.iloc[0]}, which does not match --mode {args.mode}")
+print(f"Mode: {args.mode}")
+dup =df.duplicated(["label", "scenario", "seed"], keep=False)
 if dup.any():
     raise SystemExit(f"Duplicate rows:\n{df[dup][['label', 'scenario', 'seed']]}")
 labels = [l for l in ORDER if l in set(df.label)] + sorted(set(df.label) - set(ORDER))
@@ -130,6 +145,7 @@ INK, INK2, GRID, SURF = "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb"
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10, "axes.edgecolor": GRID,
                      "axes.labelcolor": INK2, "xtick.color": INK2, "ytick.color": INK, "figure.facecolor": SURF,
                      "axes.facecolor": SURF})
+MODE_TXT = "greedy actions" if args.mode == "greedy" else "sampled actions"
 TITLE = {"uniform": "Uniform", "peak": "Peak hour", "asym": "Asymmetric"}
 
 
@@ -163,9 +179,9 @@ def bars(metric_col, err_col, xlabel, fname, title, fmt="{:.0f}"):
 
 
 bars("mean", "ci95", "Mean true delay per vehicle (s)", "fig_4x4_true_delay.png",
-     "4x4 grid: mean true delay per vehicle (10 evaluation seeds, 95% CI). Lower is better.")
+     f"4x4 grid, {MODE_TXT}: mean true delay per vehicle (10 evaluation seeds, 95% CI). Lower is better.")
 bars("teleports_mean", None, "Mean teleports per episode (vehicles stuck 300 s)", "fig_4x4_teleports.png",
-     "4x4 grid: teleports per episode (gridlock indicator). Lower is better.", fmt="{:.1f}")
+     f"4x4 grid, {MODE_TXT}: teleports per episode (gridlock indicator). Lower is better.", fmt="{:.1f}")
 
 # per-seed paired view for the learned controllers
 shown = [l for l in ["E1", "B1", "B2"] if l in labels]
@@ -189,7 +205,7 @@ for ax, sc in zip(axes, SCEN):
 axes[0].set_ylabel("True delay (s)")
 h, lab = axes[0].get_legend_handles_labels()
 fig.legend(h, lab, frameon=False, fontsize=9, loc="lower center", ncol=len(lab))
-fig.suptitle("Per-seed true delay of the learned controllers (dashed: fixed-time baselines' means)",
+fig.suptitle(f"Per-seed true delay of the learned controllers, {MODE_TXT} (dashed: fixed-time baselines' means)",
              x=0.01, ha="left", color=INK, fontsize=12)
 fig.tight_layout(rect=(0, 0.08, 1, 1))
 fig.savefig(os.path.join(args.out, "fig_4x4_per_seed.png"), dpi=200)

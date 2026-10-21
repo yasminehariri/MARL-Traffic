@@ -89,7 +89,11 @@ def analyze(own, msg, ep, step_key, rng_seed=0):
 
     # 1. collapse
     idx = rng.choice(len(msg), size=min(3000, len(msg)), replace=False)
-    out["mean_pairwise_cosine"] = mean_offdiag(cosine_matrix(msg[idx]))
+    cm = cosine_matrix(msg[idx])
+    out["mean_pairwise_cosine"] = mean_offdiag(cm)
+    # mean |cosine|: messages pointing in opposite directions (+v and -v) give a mean cosine
+    # near 0 but are still one direction; |cosine| near 1 exposes that
+    out["mean_abs_pairwise_cosine"] = mean_offdiag(np.abs(cm))
     same = [mean_offdiag(cosine_matrix(msg[step_key == k])) for k in np.unique(step_key)
             if (step_key == k).sum() > 1]
     out["same_moment_cosine_across_agents"] = float(np.mean(same))
@@ -128,9 +132,18 @@ def analyze(own, msg, ep, step_key, rng_seed=0):
 def verdicts(rep):
     v = []
     c = rep["mean_pairwise_cosine"]
-    v.append(("Collapse", "COLLAPSED" if c > 0.9 else "partly similar" if c > 0.5 else "diverse",
-              f"mean cosine {c:.4f} (2x2: 0.9991 collapsed, 0.2773 after fix); "
-              f"spread/size {rep['spread_ratio']:.3f}"))
+    ac, pr = rep.get("mean_abs_pairwise_cosine", float("nan")), rep["participation_ratio"]
+    if c > 0.9:
+        state = "COLLAPSED"
+    elif pr < 1.5 or ac > 0.9:
+        state = "LOW-DIMENSIONAL"  # one direction (possibly +/-), not a rich 8-dim code
+    elif c > 0.5:
+        state = "partly similar"
+    else:
+        state = "diverse"
+    v.append(("Collapse", state,
+              f"mean cosine {c:.4f}, mean |cosine| {ac:.4f}, effective dims {pr:.2f} of 8 "
+              f"(2x2: 0.9991 collapsed, 0.2773 after fix); spread/size {rep['spread_ratio']:.3f}"))
     r = rep["decode_queue_total_r2"]
     v.append(("Informative", "strong" if r >= 0.5 else "partial" if r >= 0.2 else "weak",
               f"queue-total R^2 {r:.3f}; phase accuracy {rep['decode_phase_accuracy']:.3f} "
@@ -342,6 +355,7 @@ def main():
     print("\n================ E1 MESSAGE CHECK (4x4) ================")
     print(f"messages analysed: {rep['n_messages']}  (every {args.every}s, {len(agents)} agents, {ep_id} episodes)")
     print(f"mean pairwise cosine:            {rep['mean_pairwise_cosine']:.4f}")
+    print(f"mean |pairwise cosine|:          {rep['mean_abs_pairwise_cosine']:.4f}   (near 1 = one direction, even if mean cosine is ~0)")
     print(f"same-moment cosine (16 agents):  {rep['same_moment_cosine_across_agents']:.4f}")
     print(f"spread / size of messages:       {rep['spread_ratio']:.3f}   (collapsed would be ~0)")
     print(f"effective dimensions (of 8):     {rep['participation_ratio']:.2f}   dead dims: {rep['dead_dims']}")
