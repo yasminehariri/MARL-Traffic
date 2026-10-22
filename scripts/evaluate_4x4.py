@@ -16,6 +16,10 @@ Metrics (every generated vehicle counts):
     waiting from its planned departure to 3600 s), mean_travel_time (finished),
     teleports.
 
+Minimum green: trained checkpoints are evaluated with the minimum green they were trained with
+(read from run_info.json). Runs with a minimum green go to <grid>_eval_mg5.csv by default, so
+version 1 results (4x4_eval.csv) are never mixed with them.
+
 Colab (one evaluation per runtime: runs in the same runtime would share tripinfo.xml):
     !python scripts/evaluate_4x4.py --cond fixed
     !python scripts/evaluate_4x4.py --cond tuned
@@ -44,7 +48,13 @@ p.add_argument("--seeds", default="0-9")
 p.add_argument("--green", type=int, default=10,
                help="green seconds for --cond tuned (10 s chosen on training seeds 100-104, all scenarios)")
 p.add_argument("--explore", action="store_true", help="sample actions instead of the most likely one")
-p.add_argument("--out", default="/content/drive/MyDrive/MARL_results/4x4_eval.csv")
+p.add_argument("--out", default=None,
+               help="CSV to append to (default: MARL_results/<grid>_eval.csv, or <grid>_eval_mg<N>.csv with a minimum green)")
+p.add_argument("--min-green", type=int, default=None,
+               help="trained conditions: read automatically from the checkpoint's run_info.json (pass only to "
+                    "double-check). tuned/random: default 5. fixed: not used (SUMO's own program)")
+p.add_argument("--grid", default="4x4", choices=["4x4", "2x2"],
+               help="grid to evaluate ON (a 2x2-trained E1 can be evaluated on 4x4 for RQ3)")
 args = p.parse_args()
 
 if args.cond in ("B1", "B2", "E1") and not args.ckpt:
@@ -54,12 +64,34 @@ a, b = (args.seeds.split("-") + [None])[:2]
 SEEDS = list(range(int(a), int(b) + 1)) if b else [int(s) for s in args.seeds.split(",")]
 SCENARIOS = args.scenarios.split(",")
 
-os.environ["MARL_NET_FILE"] = f"{REPO}/configs/mygrid4x4.net.xml"
-os.environ["MARL_SUMO_CFG"] = f"{REPO}/configs/simulation_4x4.sumocfg"
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from mgutil import min_green_for, set_min_green, run_info_for  # noqa: E402
+
+if args.cond in ("B1", "B2", "E1"):
+    MIN_GREEN = min_green_for(args.ckpt, args.min_green)
+    info = run_info_for(args.ckpt) or {}
+    if info.get("grid", args.grid) != args.grid:
+        print(f"NOTE: checkpoint trained on {info['grid']}, evaluated on {args.grid} (zero-shot transfer)", flush=True)
+elif args.cond == "fixed":
+    MIN_GREEN = 0  # SUMO's own fixed program; greens are already long, the env rule does not apply
+else:
+    MIN_GREEN = 5 if args.min_green is None else args.min_green
+set_min_green(MIN_GREEN)
+MG_TAG = f"_mg{MIN_GREEN}" if MIN_GREEN > 0 else ""
+if args.out is None:
+    # fixed-time does not depend on the rule: its rows go to the same file as the run they belong to
+    args.out = f"/content/drive/MyDrive/MARL_results/{args.grid}_eval{MG_TAG}.csv"
+print(f"Writing to {args.out}", flush=True)
+
+NET, CFG = {"4x4": ("mygrid4x4.net.xml", "simulation_4x4.sumocfg"),
+            "2x2": ("mygrid2x2.net.xml", "simulation.sumocfg")}[args.grid]
+os.environ["MARL_NET_FILE"] = f"{REPO}/configs/{NET}"
+os.environ["MARL_SUMO_CFG"] = f"{REPO}/configs/{CFG}"
 sys.path.insert(0, REPO)
-TRIPINFO_ENV = f"{REPO}/configs/tripinfo.xml"  # written by simulation_4x4.sumocfg
+TRIPINFO_ENV = f"{REPO}/configs/tripinfo.xml"  # written by both sumocfg files
 FIELDS = ["label", "cond", "scenario", "seed", "generated", "entered", "finished",
-          "wait_finished", "true_delay", "mean_travel_time", "teleports", "explore", "ckpt", "time"]
+          "wait_finished", "true_delay", "mean_travel_time", "teleports", "explore", "ckpt", "time",
+          "min_green", "switches_per_light_h", "grid"]
 
 
 def metrics(tripinfo, route):
@@ -78,19 +110,36 @@ def metrics(tripinfo, route):
                 mean_travel_time=round(sum(float(t.get("duration", 0)) for t in fin) / max(1, len(fin)), 3))
 
 
+def existing_header():
+    if not os.path.exists(args.out):
+        return None
+    with open(args.out) as f:
+        return next(csv.reader(f), None)
+
+
 def done_rows():
     if not os.path.exists(args.out):
         return set()
     with open(args.out) as f:
-        return {(r["label"], r["scenario"], int(r["seed"])) for r in csv.DictReader(f)}
+        rows = list(csv.DictReader(f))
+    if rows and args.cond != "fixed":
+        file_mg = {int(r.get("min_green") or 0) for r in rows if r["cond"] != "fixed"}
+        if file_mg and file_mg != {MIN_GREEN}:
+            sys.exit(f"{args.out} holds rows with min_green {sorted(file_mg)}, this run uses {MIN_GREEN}. "
+                     f"Use a different --out so the two rule sets never mix.")
+    return {(r["label"], r["scenario"], int(r["seed"])) for r in rows}
 
 
 def write_row(row):
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
-    new = not os.path.exists(args.out)
+    header = existing_header()
+    fields = header or FIELDS
+    missing = [k for k in row if k not in fields]
+    if missing and (MIN_GREEN != 0 or args.grid != "4x4"):
+        sys.exit(f"{args.out} is an old-format file without {missing}; use a new --out for these runs.")
     with open(args.out, "a", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=FIELDS)
-        if new:
+        w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
+        if header is None:
             w.writeheader()
         w.writerow(row)
 
@@ -103,6 +152,7 @@ def run_fixed(route):
     m = metrics(out, route)
     os.remove(out)
     m["teleports"] = res.stderr.count("Teleporting vehicle")
+    m["switches_per_light_h"] = ""
     return m
 
 
@@ -122,6 +172,8 @@ def run_env(env, choose, route):
     time.sleep(1)
     m = metrics(TRIPINFO_ENV, route)
     m["teleports"] = teleports
+    sw = env._env.switches
+    m["switches_per_light_h"] = round(sum(sw.values()) / len(sw) * 3600 / END, 1)
     return m
 
 
@@ -183,7 +235,7 @@ def main():
             choose = lambda obs, t: {aid: rng.randrange(4) for aid in obs}
 
     for sc, s in todo:
-        route = f"{REPO}/configs/routes_4x4_{sc}_seed{s}.rou.xml"
+        route = f"{REPO}/configs/routes_{args.grid}_{sc}_seed{s}.rou.xml"
         t0 = time.time()
         if args.explore:  # reproducible sampling: same seed -> same sampled actions
             import numpy as np, torch
@@ -195,11 +247,12 @@ def main():
             m = run_env(env, choose, route)
         row = dict(label=LABEL, cond=args.cond, scenario=sc, seed=s, explore=int(args.explore),
                    ckpt=args.ckpt or (f"green={args.green}" if args.cond == "tuned" else ""),
-                   time=time.strftime("%Y-%m-%d %H:%M:%S"), **m)
+                   time=time.strftime("%Y-%m-%d %H:%M:%S"), min_green=MIN_GREEN, grid=args.grid, **m)
         write_row(row)
         print(f"{LABEL:8s} {sc:8s} seed{s}: entered {m['entered']}/{m['generated']} | finished {m['finished']} | "
               f"true delay {m['true_delay']:7.2f}s | wait(fin) {m['wait_finished']:7.2f}s | "
-              f"teleports {m['teleports']} | {time.time() - t0:.0f}s", flush=True)
+              f"teleports {m['teleports']} | switches/light/h {m['switches_per_light_h']} | "
+              f"{time.time() - t0:.0f}s", flush=True)
 
 
 if __name__ == "__main__":

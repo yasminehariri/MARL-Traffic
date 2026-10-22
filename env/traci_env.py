@@ -29,6 +29,14 @@ REWARD_MODE = os.environ.get("MARL_REWARD", "team")
 if REWARD_MODE not in ("team", "local", "neighbourhood"):
     raise ValueError(f"MARL_REWARD must be 'team', 'local' or 'neighbourhood', got {REWARD_MODE!r}")
 REWARD_ALPHA = float(os.environ.get("MARL_REWARD_ALPHA", "0.5"))
+
+# Minimum green: once a green starts it must be shown for at least MIN_GREEN seconds
+# before a phase change is accepted (requests earlier than that are ignored and the
+# green is held, as in sumo-rl's min_green). 0 = no minimum (version 1 behaviour:
+# a green could last a single second). Real signals always have a minimum green.
+MIN_GREEN = int(os.environ.get("MARL_MIN_GREEN", "0"))
+if MIN_GREEN < 0:
+    raise ValueError(f"MARL_MIN_GREEN must be >= 0, got {MIN_GREEN}")
 MAX_PHASE_DURATION = 90.0
 MAX_QUEUE = 20.0
 
@@ -96,6 +104,8 @@ class TraCIEnv:
         self.pending = {tl: 0 for tl in TL_IDS}
         self.yellow_left = {tl: 0 for tl in TL_IDS}
         self.elapsed = {tl: 0 for tl in TL_IDS}
+        self.green_time = {tl: 0 for tl in TL_IDS}  # seconds the current green has been shown
+        self.switches = {tl: 0 for tl in TL_IDS}    # accepted phase changes this episode
         self._rng = random.Random(int(os.environ.get("MARL_ROUTE_SEED", "0")))
 
     def reset(self, route_file=None):
@@ -113,6 +123,8 @@ class TraCIEnv:
         self.pending = {tl: 0 for tl in TL_IDS}
         self.yellow_left = {tl: 0 for tl in TL_IDS}
         self.elapsed = {tl: 0 for tl in TL_IDS}
+        self.green_time = {tl: 0 for tl in TL_IDS}
+        self.switches = {tl: 0 for tl in TL_IDS}
         for tl_id in self.agents:
             traci.trafficlight.setPhase(tl_id, 0)
         return self.get_obs()
@@ -126,19 +138,23 @@ class TraCIEnv:
                 if self.yellow_left[tl_id] == 0:
                     self.green[tl_id] = self.pending[tl_id]
                     traci.trafficlight.setPhase(tl_id, self.green[tl_id])
+                    self.green_time[tl_id] = 1  # the new green is shown during this step
                 else:
                     traci.trafficlight.setPhase(tl_id, self.green[tl_id] + 1)
                 self.elapsed[tl_id] = 0
-            elif target != self.green[tl_id]:
-                # Phase change requested: run the yellow that follows the current green.
+            elif target != self.green[tl_id] and self.green_time[tl_id] >= MIN_GREEN:
+                # Phase change requested (and the minimum green is over): run the yellow
+                # that follows the current green.
                 self.pending[tl_id] = target
                 self.yellow_left[tl_id] = YELLOW_TIME
                 traci.trafficlight.setPhase(tl_id, self.green[tl_id] + 1)
                 self.elapsed[tl_id] = 0
+                self.switches[tl_id] += 1
             else:
-                # Hold the current green.
+                # Hold the current green (also when a change is requested too early).
                 traci.trafficlight.setPhase(tl_id, self.green[tl_id])
                 self.elapsed[tl_id] += 1
+                self.green_time[tl_id] += 1
         traci.simulationStep()
         obs = self.get_obs()
         reward = self.get_reward()

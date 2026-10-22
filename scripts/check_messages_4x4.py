@@ -167,10 +167,19 @@ def main():
     p.add_argument("--seeds", default="0,1,2")
     p.add_argument("--every", type=int, default=5, help="record messages every N seconds")
     p.add_argument("--no-ablation", action="store_true")
-    p.add_argument("--eval-csv", default="/content/drive/MyDrive/MARL_results/4x4_eval.csv",
-                   help="E1 rows here are used to confirm normal episodes reproduce the evaluation")
-    p.add_argument("--out", default="/content/drive/MyDrive/MARL_results/e1_messages_4x4")
+    p.add_argument("--eval-csv", default=None,
+                   help="E1 rows here confirm normal episodes reproduce the evaluation "
+                        "(default: 4x4_eval.csv, or 4x4_eval_mg<N>.csv with a minimum green)")
+    p.add_argument("--out", default=None, help="default: MARL_results/e1_messages_4x4[_mg<N>]")
+    p.add_argument("--min-green", type=int, default=None, help="read from run_info.json; pass only to double-check")
     args = p.parse_args()
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from mgutil import min_green_for, set_min_green
+    mg = min_green_for(args.ckpt, args.min_green)
+    set_min_green(mg)
+    tag = f"_mg{mg}" if mg > 0 else ""
+    args.eval_csv = args.eval_csv or f"/content/drive/MyDrive/MARL_results/4x4_eval{tag}.csv"
+    args.out = args.out or f"/content/drive/MyDrive/MARL_results/e1_messages_4x4{tag}"
     os.makedirs(args.out, exist_ok=True)
     scen = args.scenarios.split(",")
     seeds = [int(s) for s in args.seeds.split(",")]

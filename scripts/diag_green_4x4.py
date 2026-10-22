@@ -23,10 +23,15 @@ REPO = "/content/MARL-Traffic"
 p = argparse.ArgumentParser()
 p.add_argument("--cond", required=True, choices=["B1", "B2", "E1"])
 p.add_argument("--ckpt", required=True)
+p.add_argument("--min-green", type=int, default=None, help="read from run_info.json; pass only to double-check")
 p.add_argument("--route", required=True)
 p.add_argument("--steps", type=int, default=900)
 p.add_argument("--explore", action="store_true", help="sample actions (as in training)")
 args = p.parse_args()
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from mgutil import min_green_for, set_min_green  # noqa: E402
+set_min_green(min_green_for(args.ckpt, args.min_green))
 
 os.environ["MARL_NET_FILE"] = f"{REPO}/configs/mygrid4x4.net.xml"
 os.environ["MARL_SUMO_CFG"] = f"{REPO}/configs/simulation_4x4.sumocfg"

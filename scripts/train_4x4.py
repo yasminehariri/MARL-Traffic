@@ -17,6 +17,9 @@ Colab usage (after the setup cell: repo pulled, packages installed, Drive mounte
     !python scripts/train_4x4.py --cond E1 --steps 500000 --resume
 
 Options added after the lane-order fix:
+    --min-green N   minimum green in seconds (default 5; 0 = version 1, no minimum).
+                    The default output folder gets a suffix, e.g. 4x4/E1_local_mg5, so the
+                    version 1 runs (4x4/E1_local) are never touched.
     --reward team|local|neighbourhood   (default team, the original design)
     --train-scenarios uniform|uniform,peak,asym   (default uniform)
     --grid 4x4|2x2        (default 4x4)
@@ -54,11 +57,14 @@ def parse_args():
     p.add_argument("--train-scenarios", default="uniform",
                    help="comma list of scenarios whose training seeds are used, e.g. uniform,peak,asym")
     p.add_argument("--grid", default="4x4", choices=["4x4", "2x2"])
+    p.add_argument("--min-green", type=int, default=5,
+                   help="minimum green in seconds (default 5). 0 = version 1 rules (no minimum)")
     return p.parse_args()
 
 
 args = parse_args()
-OUT = args.out or f"/content/drive/MyDrive/MARL_checkpoints/{args.grid}/{args.cond}_{args.reward}"
+MG_TAG = f"_mg{args.min_green}" if args.min_green > 0 else ""
+OUT = args.out or f"/content/drive/MyDrive/MARL_checkpoints/{args.grid}/{args.cond}_{args.reward}{MG_TAG}"
 CKPT_DIR = os.path.join(OUT, "checkpoints")
 os.makedirs(CKPT_DIR, exist_ok=True)
 
@@ -69,6 +75,7 @@ os.environ["MARL_NET_FILE"] = f"{REPO}/configs/{GRID[0]}"
 os.environ["MARL_SUMO_CFG"] = f"{REPO}/configs/{GRID[1]}"
 os.environ["MARL_ROUTE_SEED"] = str(args.seed)
 os.environ["MARL_REWARD"] = args.reward
+os.environ["MARL_MIN_GREEN"] = str(args.min_green)
 sys.path.insert(0, REPO)
 
 import ray  # noqa: E402
@@ -87,13 +94,16 @@ NUM_GPUS = 1 if torch.cuda.is_available() else 0
 
 
 def build_config():
-    from env.traci_env import NUM_AGENTS, SUMO_CFG, REWARD_MODE, LANE_IDS
+    from env.traci_env import NUM_AGENTS, SUMO_CFG, REWARD_MODE, LANE_IDS, MIN_GREEN
     assert NUM_AGENTS == GRID[2], f"Expected {GRID[2]} agents on the {args.grid} grid, got {NUM_AGENTS}"
     assert SUMO_CFG.endswith(GRID[1]), f"Wrong SUMO config: {SUMO_CFG}"
     assert REWARD_MODE == args.reward, f"Reward mode mismatch: {REWARD_MODE} vs {args.reward}"
+    assert MIN_GREEN == args.min_green, f"Min green mismatch: env {MIN_GREEN} vs --min-green {args.min_green}"
     # LANE_IDS is built in action order and validated at import; print one light as a visible check
     first = sorted(LANE_IDS)[0]
-    print(f"[{args.cond}] grid {args.grid} | reward {REWARD_MODE} | {first} lanes in action order: {LANE_IDS[first]}", flush=True)
+    print(f"[{args.cond}] grid {args.grid} | reward {REWARD_MODE} | min green {MIN_GREEN} s | "
+          f"{first} lanes in action order: {LANE_IDS[first]}", flush=True)
+    print(f"[{args.cond}] saving to {OUT}", flush=True)
 
     training = dict(lr=3e-4, clip_param=0.2, vf_loss_coeff=0.5, entropy_coeff=0.01,
                     gamma=0.99, lambda_=0.95, train_batch_size=512, num_epochs=4)
@@ -161,6 +171,13 @@ def ep_return(r):
 
 def main():
     state = load_state()
+    info_path = os.path.join(OUT, "run_info.json")
+    if args.resume and os.path.exists(info_path):
+        with open(info_path) as f:
+            old_mg = int(json.load(f).get("min_green", 0))
+        if old_mg != args.min_green:
+            sys.exit(f"{OUT} was trained with min_green={old_mg}; resuming with --min-green {args.min_green} "
+                     f"would mix two rule sets in one run.")
     if state["iteration"] > 0 and not args.resume:
         sys.exit(f"{OUT} already has a run at iteration {state['iteration']}. "
                  f"Add --resume to continue it, or choose a different --out.")
@@ -183,7 +200,7 @@ def main():
               f"(iteration {state['iteration']}, {state['total_steps']} steps)", flush=True)
 
     with open(os.path.join(OUT, "run_info.json"), "w") as f:
-        json.dump({"cond": args.cond, "grid": args.grid, "reward": args.reward,
+        json.dump({"cond": args.cond, "grid": args.grid, "reward": args.reward, "min_green": args.min_green,
                    "train_scenarios": args.train_scenarios,
                    "target_steps": args.steps, "seed": args.seed,
                    "train_routes": TRAIN_ROUTES, "gpus": NUM_GPUS,

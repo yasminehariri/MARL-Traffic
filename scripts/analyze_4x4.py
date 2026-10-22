@@ -8,6 +8,9 @@ scenario), so results are paired by (scenario, seed). Tests per scenario:
 
 Usage (Colab or locally):
     python scripts/analyze_4x4.py results/4x4_eval_yasmine.csv results/4x4_eval_hanin.csv --out results/4x4_final
+    # version 2 (5 s minimum green): new CSVs, plus fixed/tuned rows reused from version 1
+    # (both are unaffected by the rule: fixed uses SUMO's program, tuned greens are 10 s)
+    python scripts/analyze_4x4.py results/4x4_eval_mg5_*.csv results/4x4_eval_hanin.csv:fixed,tuned --out results/4x4_mg5
     # robustness run later: add the explore CSV and --labels E1_explore,B1_explore,B2_explore
 """
 
@@ -36,7 +39,22 @@ NAMES = {"E1": "E1 learned comm", "B1": "B1 no comm", "B2": "B2 hand-crafted com
          "tuned": "Tuned fixed-time (10 s)", "fixed": "Fixed-time (SUMO default)", "random": "Random"}
 
 # ---------- merge and sanity checks ----------
-df = pd.concat([pd.read_csv(c) for c in args.csvs], ignore_index=True)
+def load(spec):
+    """'file.csv' or 'file.csv:fixed,tuned' (only those labels from that file)."""
+    path, _, only = spec.partition(":") if not os.path.exists(spec) else (spec, "", "")
+    d = pd.read_csv(path)
+    if only:
+        d = d[d.label.isin(only.split(","))]
+    print(f"  {path}: {len(d)} rows" + (f" (only {only})" if only else ""))
+    return d
+
+
+print("Loading:")
+df = pd.concat([load(c) for c in args.csvs], ignore_index=True)
+if "min_green" in df.columns:
+    mg = df[~df.cond.isin(["fixed", "tuned"])]["min_green"].fillna(0).astype(int).unique()
+    if len(mg) > 1:
+        raise SystemExit(f"Rows from different minimum-green rules {sorted(mg)} are mixed; analyse each version separately.")
 TRAINED = ["E1", "B1", "B2"]
 if args.mode == "sampled":
     df = df[~df.label.isin(TRAINED)].copy()  # drop greedy rows of trained agents
@@ -81,6 +99,8 @@ for sc in SCEN:
                          wait_finished=d.wait_finished.mean(), travel_time=d.mean_travel_time.mean(),
                          entered_pct=d.entered_pct.mean(), finished=d.finished.mean(),
                          teleports_mean=d.teleports.mean(), teleports_max=d.teleports.max(),
+                         switches_per_light_h=(pd.to_numeric(d.switches_per_light_h, errors="coerce").mean()
+                                               if "switches_per_light_h" in d else np.nan),
                          runs_with_teleports=int((d.teleports > 0).sum())))
 summ = pd.DataFrame(rows)
 fixed_mean = summ[summ.label == "fixed"].set_index("scenario")["mean"]

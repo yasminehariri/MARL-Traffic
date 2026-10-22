@@ -21,6 +21,10 @@ Usage in Colab (from the repo root):
   !python scripts/generate_routes_4x4.py --all            # all 3 scenarios x 10 seeds + sanity check
   !python scripts/generate_routes_4x4.py --train          # Uniform training seeds 100-104 + sanity check
   !python scripts/generate_routes_4x4.py --train-all      # Peak + Asymmetric training seeds 100-104 + sanity check
+  !python scripts/generate_routes_4x4.py --grid 2x2 --everything   # 2x2: all 45 files (eval 0-9 + train 100-104)
+
+Same generator and settings for both grids (112.5 veh/hr per entry, same vehicle mix, same
+peak window and asymmetric ratio), so 2x2 and 4x4 traffic are directly comparable.
 """
 
 import argparse
@@ -33,7 +37,9 @@ import xml.etree.ElementTree as ET
 import sumolib
 
 CONFIGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "configs")
-NET = os.path.join(CONFIGS, "mygrid4x4.net.xml")
+GRID = "4x4"  # set from --grid
+NETS = {"4x4": "mygrid4x4.net.xml", "2x2": "mygrid2x2.net.xml"}
+NET = os.path.join(CONFIGS, NETS[GRID])
 
 EPISODE_END = 3600          # seconds, matches the 3600-step episodes
 PER_ENTRY_RATE = 112.5      # veh/hr per fringe entry (matched to 2x2)
@@ -148,12 +154,12 @@ def sanity_check(routes_path, label):
 
 
 def build(scenario, seed, check):
-    trips_path = os.path.join(CONFIGS, f"trips_4x4_{scenario}_seed{seed}.trips.xml")
-    routes_path = os.path.join(CONFIGS, f"routes_4x4_{scenario}_seed{seed}.rou.xml")
+    trips_path = os.path.join(CONFIGS, f"trips_{GRID}_{scenario}_seed{seed}.trips.xml")
+    routes_path = os.path.join(CONFIGS, f"routes_{GRID}_{scenario}_seed{seed}.rou.xml")
     n = make_trips(sumolib.net.readNet(NET), scenario, seed, trips_path)
     route(trips_path, routes_path)
     os.remove(trips_path)
-    line = f"{scenario:8s} seed{seed}: {n:5d} vehicles generated"
+    line = f"{GRID} {scenario:8s} seed{seed}: {n:5d} vehicles generated"
     if check:
         done, mean, share, tp, mix = sanity_check(routes_path, f"{scenario}_{seed}")
         mix_txt = " ".join(f"{k}:{mix.get(k, 0)}" for k in VEHICLE_MIX)
@@ -170,9 +176,20 @@ if __name__ == "__main__":
     g.add_argument("--train", action="store_true", help="Uniform training seeds 100-104, with sanity check")
     g.add_argument("--train-all", dest="train_all", action="store_true",
                    help="Peak and Asymmetric training seeds 100-104 (Uniform ones come from --train)")
+    g.add_argument("--everything", action="store_true",
+                   help="all 3 scenarios: evaluation seeds 0-9 AND training seeds 100-104 (45 files)")
+    p.add_argument("--grid", default="4x4", choices=sorted(NETS),
+                   help="4x4 (default, files already in the repo) or 2x2")
     a = p.parse_args()
+    GRID = a.grid
+    NET = os.path.join(CONFIGS, NETS[GRID])
+    print(f"Grid {GRID}: {NET}", flush=True)
 
-    if a.train:
+    if a.everything:
+        for sc in SCENARIOS:
+            for s in list(SEEDS) + list(TRAIN_SEEDS):
+                build(sc, s, check=True)
+    elif a.train:
         for s in TRAIN_SEEDS:
             build("uniform", s, check=True)
     elif a.train_all:

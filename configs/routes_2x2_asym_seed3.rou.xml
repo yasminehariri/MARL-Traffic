@@ -1,0 +1,2888 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-10-21T20:49:45.241912+02:00 by Eclipse SUMO duarouter 1.28.0
+<duarouterConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="/tmp/claude-0/-home-claude/ae77af66-5a4e-5c80-8d97-bf92317edfd9/scratchpad/gen/scripts/../configs/mygrid2x2.net.xml"/>
+        <route-files value="/tmp/claude-0/-home-claude/ae77af66-5a4e-5c80-8d97-bf92317edfd9/scratchpad/gen/scripts/../configs/trips_2x2_asym_seed3.trips.xml"/>
+    </input>
+
+    <output>
+        <output-file value="/tmp/claude-0/-home-claude/ae77af66-5a4e-5c80-8d97-bf92317edfd9/scratchpad/gen/scripts/../configs/routes_2x2_asym_seed3.rou.xml"/>
+    </output>
+
+    <report>
+        <no-warnings value="true"/>
+        <ignore-errors value="true"/>
+        <no-step-log value="true"/>
+    </report>
+
+</duarouterConfiguration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vType id="van" length="6.50" minGap="2.50" maxSpeed="13.89" vClass="delivery" guiShape="delivery" color="230,230,230" accel="2.0" decel="4.0"/>
+    <vehicle id="asym_3_0" type="van" depart="1.26" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vType id="car" length="4.50" minGap="2.50" maxSpeed="13.89" vClass="passenger" guiShape="passenger" color="70,110,200" accel="2.6" decel="4.5"/>
+    <vehicle id="asym_3_1" type="car" depart="1.54" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_2" type="car" depart="2.85" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_3" type="car" depart="3.75" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_4" type="car" depart="3.75" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_5" type="car" depart="8.08" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_6" type="car" depart="10.34" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_7" type="car" depart="15.22" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_8" type="car" depart="17.11" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vType id="bus" length="12.00" minGap="3.00" maxSpeed="11.11" vClass="bus" guiShape="bus" color="230,170,40" accel="1.2" decel="4.0"/>
+    <vehicle id="asym_3_9" type="bus" depart="18.57" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vType id="truck" length="10.00" minGap="3.00" maxSpeed="11.11" vClass="truck" guiShape="truck" color="150,70,60" accel="1.3" decel="4.0"/>
+    <vehicle id="asym_3_10" type="truck" depart="23.04" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_11" type="truck" depart="24.28" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_12" type="truck" depart="27.75" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_13" type="car" depart="29.82" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_14" type="car" depart="31.58" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_15" type="car" depart="38.69" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_16" type="car" depart="46.79" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_17" type="car" depart="47.41" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_18" type="bus" depart="51.83" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_19" type="car" depart="52.82" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_20" type="car" depart="55.89" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_21" type="car" depart="59.03" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_22" type="car" depart="62.82" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_23" type="truck" depart="66.73" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_24" type="car" depart="69.68" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_25" type="car" depart="77.43" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_26" type="car" depart="83.76" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_27" type="car" depart="104.20" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_28" type="car" depart="104.92" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_29" type="car" depart="109.22" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_30" type="car" depart="110.39" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_31" type="car" depart="111.05" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_32" type="car" depart="111.66" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_33" type="car" depart="117.37" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_34" type="car" depart="126.54" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_35" type="car" depart="129.02" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_36" type="car" depart="129.66" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_37" type="car" depart="134.24" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_38" type="car" depart="153.25" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_39" type="van" depart="159.34" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_40" type="car" depart="160.73" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_41" type="car" depart="162.90" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_42" type="car" depart="171.67" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_43" type="bus" depart="173.14" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_44" type="car" depart="174.72" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_45" type="car" depart="186.68" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_46" type="car" depart="188.27" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_47" type="car" depart="192.06" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_48" type="car" depart="193.84" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_49" type="car" depart="196.94" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_50" type="car" depart="205.11" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_51" type="car" depart="213.75" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_52" type="bus" depart="214.68" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_53" type="car" depart="220.59" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_54" type="car" depart="221.00" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_55" type="van" depart="225.67" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_56" type="car" depart="229.40" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_57" type="car" depart="244.20" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_58" type="car" depart="244.89" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_59" type="car" depart="256.94" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_60" type="car" depart="259.38" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_61" type="car" depart="259.78" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_62" type="car" depart="261.25" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_63" type="car" depart="261.61" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_64" type="car" depart="266.53" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_65" type="car" depart="276.70" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_66" type="car" depart="282.80" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_67" type="car" depart="286.74" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_68" type="car" depart="291.26" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_69" type="car" depart="291.28" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_70" type="car" depart="291.54" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_71" type="car" depart="298.42" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_72" type="van" depart="300.50" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_73" type="car" depart="304.20" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_74" type="car" depart="305.84" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_75" type="car" depart="305.92" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_76" type="car" depart="307.39" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_77" type="van" depart="321.53" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_78" type="car" depart="329.99" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_79" type="car" depart="333.85" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_80" type="car" depart="335.30" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_81" type="car" depart="335.40" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_82" type="car" depart="340.36" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_83" type="van" depart="341.78" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_84" type="car" depart="358.24" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_85" type="bus" depart="359.17" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_86" type="car" depart="359.81" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_87" type="car" depart="361.91" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_88" type="bus" depart="362.99" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_89" type="car" depart="371.00" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_90" type="car" depart="377.77" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_91" type="car" depart="378.36" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_92" type="car" depart="379.31" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_93" type="truck" depart="379.42" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_94" type="bus" depart="384.80" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_95" type="car" depart="387.06" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_96" type="car" depart="389.22" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_97" type="car" depart="390.88" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_98" type="car" depart="398.77" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_99" type="car" depart="400.09" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_100" type="car" depart="415.18" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_101" type="car" depart="420.49" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_102" type="car" depart="423.29" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_103" type="car" depart="437.76" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_104" type="car" depart="438.75" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_105" type="car" depart="441.35" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_106" type="car" depart="444.50" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_107" type="car" depart="456.35" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_108" type="car" depart="457.76" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_109" type="car" depart="465.38" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_110" type="car" depart="465.47" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_111" type="van" depart="467.70" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_112" type="truck" depart="473.00" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_113" type="car" depart="476.41" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_114" type="car" depart="488.89" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_115" type="car" depart="491.18" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_116" type="car" depart="497.41" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_117" type="car" depart="503.25" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_118" type="car" depart="506.28" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_119" type="car" depart="513.01" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_120" type="bus" depart="518.86" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_121" type="car" depart="528.04" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_122" type="car" depart="535.89" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_123" type="car" depart="544.92" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_124" type="car" depart="546.28" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_125" type="car" depart="549.37" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_126" type="truck" depart="552.11" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_127" type="car" depart="552.23" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_128" type="car" depart="552.70" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_129" type="car" depart="554.37" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_130" type="car" depart="555.39" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_131" type="car" depart="558.04" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_132" type="car" depart="562.01" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_133" type="car" depart="571.00" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_134" type="car" depart="574.70" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_135" type="truck" depart="581.18" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_136" type="car" depart="581.79" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_137" type="car" depart="584.40" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_138" type="car" depart="584.90" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_139" type="car" depart="585.70" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_140" type="car" depart="586.15" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_141" type="car" depart="590.91" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_142" type="car" depart="593.29" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_143" type="car" depart="593.36" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_144" type="van" depart="595.12" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_145" type="car" depart="599.05" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_146" type="bus" depart="601.39" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_147" type="bus" depart="605.73" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_148" type="car" depart="606.11" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_149" type="car" depart="612.70" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_150" type="car" depart="614.91" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_151" type="car" depart="618.05" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_152" type="truck" depart="619.66" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_153" type="car" depart="621.40" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_154" type="car" depart="627.60" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_155" type="car" depart="629.13" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_156" type="car" depart="635.15" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_157" type="truck" depart="639.72" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_158" type="van" depart="646.68" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_159" type="car" depart="656.56" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_160" type="car" depart="662.41" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_161" type="car" depart="669.49" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_162" type="car" depart="669.93" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_163" type="car" depart="673.30" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_164" type="car" depart="683.75" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_165" type="car" depart="690.55" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_166" type="car" depart="693.60" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_167" type="car" depart="707.69" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_168" type="car" depart="710.18" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_169" type="car" depart="710.50" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_170" type="car" depart="710.86" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_171" type="car" depart="714.38" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_172" type="truck" depart="715.81" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_173" type="car" depart="716.73" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_174" type="bus" depart="718.73" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_175" type="car" depart="721.05" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_176" type="car" depart="724.02" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_177" type="car" depart="724.77" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_178" type="car" depart="725.07" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_179" type="truck" depart="727.25" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_180" type="car" depart="727.35" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_181" type="car" depart="727.41" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_182" type="van" depart="731.21" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_183" type="car" depart="731.76" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_184" type="car" depart="735.93" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_185" type="car" depart="745.58" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_186" type="car" depart="751.43" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_187" type="car" depart="753.88" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_188" type="car" depart="756.06" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_189" type="car" depart="758.74" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_190" type="van" depart="760.71" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_191" type="car" depart="768.56" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_192" type="car" depart="773.77" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_193" type="van" depart="774.11" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_194" type="car" depart="782.01" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_195" type="car" depart="786.03" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_196" type="car" depart="789.04" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_197" type="car" depart="794.23" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_198" type="van" depart="796.47" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_199" type="car" depart="796.78" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_200" type="car" depart="797.34" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_201" type="car" depart="806.05" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_202" type="car" depart="814.53" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_203" type="van" depart="815.39" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_204" type="car" depart="824.63" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_205" type="car" depart="826.41" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_206" type="car" depart="827.65" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_207" type="car" depart="830.18" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_208" type="car" depart="836.85" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_209" type="car" depart="847.75" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_210" type="van" depart="849.88" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_211" type="bus" depart="852.51" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_212" type="car" depart="853.91" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_213" type="car" depart="854.09" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_214" type="bus" depart="854.57" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_215" type="truck" depart="857.76" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_216" type="car" depart="869.00" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_217" type="car" depart="871.44" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_218" type="car" depart="878.79" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_219" type="car" depart="879.01" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_220" type="truck" depart="880.58" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_221" type="truck" depart="887.66" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_222" type="car" depart="892.97" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_223" type="truck" depart="893.51" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_224" type="car" depart="896.70" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_225" type="car" depart="897.48" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_226" type="car" depart="903.17" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_227" type="car" depart="913.47" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_228" type="van" depart="914.29" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_229" type="car" depart="919.57" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_230" type="van" depart="920.69" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_231" type="car" depart="923.43" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_232" type="car" depart="927.00" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_233" type="car" depart="929.36" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_234" type="car" depart="930.34" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_235" type="car" depart="934.11" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_236" type="car" depart="935.34" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_237" type="car" depart="940.81" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_238" type="van" depart="945.95" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_239" type="van" depart="948.39" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_240" type="car" depart="950.44" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_241" type="car" depart="964.14" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_242" type="car" depart="964.40" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_243" type="van" depart="967.88" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_244" type="bus" depart="970.54" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_245" type="car" depart="970.99" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_246" type="car" depart="974.48" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_247" type="car" depart="975.06" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_248" type="car" depart="975.94" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_249" type="car" depart="977.77" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_250" type="truck" depart="978.23" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_251" type="car" depart="979.73" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_252" type="car" depart="981.68" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_253" type="car" depart="982.19" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_254" type="car" depart="985.76" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_255" type="car" depart="992.79" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_256" type="car" depart="993.32" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_257" type="car" depart="994.94" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_258" type="car" depart="996.22" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_259" type="car" depart="997.03" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_260" type="car" depart="1005.68" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_261" type="car" depart="1012.06" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_262" type="car" depart="1012.10" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_263" type="car" depart="1012.43" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_264" type="van" depart="1016.49" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_265" type="truck" depart="1021.66" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_266" type="van" depart="1029.27" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_267" type="car" depart="1033.91" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_268" type="car" depart="1034.12" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_269" type="car" depart="1042.02" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_270" type="car" depart="1044.78" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_271" type="truck" depart="1047.05" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_272" type="van" depart="1047.85" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_273" type="bus" depart="1048.54" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_274" type="van" depart="1054.05" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_275" type="car" depart="1058.61" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_276" type="car" depart="1064.44" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_277" type="car" depart="1064.83" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_278" type="car" depart="1066.23" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_279" type="car" depart="1068.04" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_280" type="car" depart="1070.76" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_281" type="car" depart="1077.77" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_282" type="van" depart="1077.92" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_283" type="car" depart="1098.26" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_284" type="car" depart="1102.81" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_285" type="car" depart="1104.45" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_286" type="car" depart="1104.93" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_287" type="car" depart="1111.14" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_288" type="car" depart="1112.38" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_289" type="car" depart="1120.68" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_290" type="car" depart="1132.52" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_291" type="car" depart="1136.19" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_292" type="car" depart="1142.13" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_293" type="car" depart="1144.08" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_294" type="car" depart="1151.37" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_295" type="car" depart="1153.08" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_296" type="car" depart="1158.87" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_297" type="bus" depart="1161.05" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_298" type="car" depart="1161.26" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_299" type="car" depart="1162.65" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_300" type="van" depart="1164.87" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_301" type="car" depart="1168.22" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_302" type="car" depart="1173.96" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_303" type="car" depart="1176.27" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_304" type="car" depart="1182.85" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_305" type="car" depart="1191.87" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_306" type="car" depart="1193.95" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_307" type="car" depart="1195.08" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_308" type="car" depart="1195.29" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_309" type="car" depart="1198.79" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_310" type="car" depart="1201.65" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_311" type="car" depart="1202.05" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_312" type="car" depart="1206.93" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_313" type="car" depart="1207.81" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_314" type="car" depart="1208.39" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_315" type="car" depart="1209.18" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_316" type="car" depart="1210.56" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_317" type="car" depart="1211.65" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_318" type="van" depart="1219.58" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_319" type="car" depart="1228.30" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_320" type="car" depart="1228.42" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_321" type="car" depart="1241.13" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_322" type="car" depart="1247.46" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_323" type="car" depart="1247.65" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_324" type="car" depart="1249.81" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_325" type="van" depart="1254.79" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_326" type="car" depart="1255.94" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_327" type="car" depart="1262.45" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_328" type="car" depart="1263.00" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_329" type="bus" depart="1265.33" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_330" type="car" depart="1266.52" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_331" type="car" depart="1267.39" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_332" type="car" depart="1267.50" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_333" type="van" depart="1270.45" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_334" type="van" depart="1284.22" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_335" type="car" depart="1288.58" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_336" type="car" depart="1290.10" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_337" type="bus" depart="1297.73" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_338" type="car" depart="1303.20" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_339" type="car" depart="1311.06" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_340" type="car" depart="1315.08" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_341" type="car" depart="1316.19" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_342" type="car" depart="1317.81" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_343" type="car" depart="1320.10" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_344" type="car" depart="1328.51" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_345" type="car" depart="1341.03" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_346" type="car" depart="1343.25" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_347" type="car" depart="1350.95" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_348" type="car" depart="1369.55" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_349" type="car" depart="1370.27" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_350" type="car" depart="1372.30" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_351" type="car" depart="1377.24" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_352" type="car" depart="1388.97" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_353" type="car" depart="1393.87" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_354" type="car" depart="1396.11" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_355" type="car" depart="1404.42" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_356" type="car" depart="1405.44" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_357" type="car" depart="1410.33" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_358" type="car" depart="1414.51" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_359" type="car" depart="1415.57" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_360" type="car" depart="1420.17" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_361" type="car" depart="1422.92" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_362" type="car" depart="1424.56" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_363" type="car" depart="1426.67" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_364" type="car" depart="1428.09" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_365" type="car" depart="1428.78" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_366" type="car" depart="1429.37" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_367" type="car" depart="1432.85" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_368" type="bus" depart="1434.22" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_369" type="car" depart="1435.25" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_370" type="car" depart="1441.56" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_371" type="car" depart="1443.28" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_372" type="car" depart="1446.65" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_373" type="car" depart="1457.01" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_374" type="car" depart="1459.01" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_375" type="car" depart="1464.60" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_376" type="car" depart="1467.85" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_377" type="car" depart="1468.76" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_378" type="car" depart="1471.42" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_379" type="car" depart="1472.75" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_380" type="car" depart="1479.57" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_381" type="van" depart="1480.18" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_382" type="truck" depart="1481.78" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_383" type="car" depart="1483.87" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_384" type="car" depart="1488.44" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_385" type="car" depart="1490.38" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_386" type="car" depart="1491.08" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_387" type="car" depart="1491.45" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_388" type="car" depart="1493.03" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_389" type="car" depart="1494.13" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_390" type="van" depart="1494.54" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_391" type="car" depart="1496.11" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_392" type="car" depart="1498.37" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_393" type="car" depart="1500.18" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_394" type="car" depart="1500.91" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_395" type="van" depart="1500.93" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_396" type="car" depart="1506.09" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_397" type="car" depart="1508.78" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_398" type="car" depart="1509.24" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_399" type="car" depart="1516.13" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_400" type="car" depart="1522.99" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_401" type="car" depart="1524.57" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_402" type="car" depart="1526.06" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_403" type="car" depart="1527.81" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_404" type="car" depart="1528.67" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_405" type="car" depart="1534.60" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_406" type="car" depart="1553.70" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_407" type="car" depart="1556.21" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_408" type="car" depart="1558.25" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_409" type="car" depart="1561.52" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_410" type="car" depart="1562.29" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_411" type="car" depart="1562.48" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_412" type="car" depart="1569.95" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_413" type="car" depart="1577.27" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_414" type="truck" depart="1578.61" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_415" type="car" depart="1583.58" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_416" type="car" depart="1584.08" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_417" type="car" depart="1587.90" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_418" type="car" depart="1590.60" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_419" type="car" depart="1595.83" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_420" type="car" depart="1599.29" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_421" type="car" depart="1618.37" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_422" type="car" depart="1620.20" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_423" type="car" depart="1621.10" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_424" type="car" depart="1621.70" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_425" type="bus" depart="1627.36" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_426" type="bus" depart="1630.77" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_427" type="car" depart="1632.16" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_428" type="car" depart="1633.00" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_429" type="bus" depart="1635.86" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_430" type="bus" depart="1640.53" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_431" type="car" depart="1644.50" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_432" type="car" depart="1648.76" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_433" type="car" depart="1653.61" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_434" type="car" depart="1654.17" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_435" type="bus" depart="1657.02" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_436" type="car" depart="1658.39" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_437" type="van" depart="1658.81" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_438" type="bus" depart="1664.72" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_439" type="car" depart="1672.63" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_440" type="car" depart="1673.59" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_441" type="car" depart="1675.17" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_442" type="car" depart="1678.98" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_443" type="car" depart="1681.56" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_444" type="car" depart="1683.29" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_445" type="car" depart="1693.30" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_446" type="car" depart="1698.31" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_447" type="truck" depart="1708.69" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_448" type="van" depart="1728.50" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_449" type="car" depart="1740.66" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_450" type="car" depart="1741.25" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_451" type="car" depart="1741.28" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_452" type="car" depart="1741.92" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_453" type="bus" depart="1745.40" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_454" type="car" depart="1748.50" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_455" type="car" depart="1749.53" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_456" type="car" depart="1755.86" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_457" type="car" depart="1761.16" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_458" type="car" depart="1763.21" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_459" type="car" depart="1767.88" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_460" type="car" depart="1768.60" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_461" type="car" depart="1770.88" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_462" type="car" depart="1773.75" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_463" type="truck" depart="1773.86" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_464" type="car" depart="1778.76" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_465" type="car" depart="1792.54" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_466" type="car" depart="1793.49" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_467" type="car" depart="1795.50" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_468" type="car" depart="1798.09" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_469" type="car" depart="1802.48" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_470" type="car" depart="1805.21" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_471" type="car" depart="1806.51" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_472" type="car" depart="1807.40" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_473" type="car" depart="1808.71" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_474" type="car" depart="1816.24" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_475" type="car" depart="1827.58" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_476" type="car" depart="1829.50" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_477" type="van" depart="1832.37" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_478" type="car" depart="1833.10" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_479" type="car" depart="1834.11" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_480" type="car" depart="1834.91" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_481" type="car" depart="1839.22" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_482" type="car" depart="1845.47" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_483" type="car" depart="1848.04" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_484" type="car" depart="1849.67" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_485" type="bus" depart="1851.78" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_486" type="car" depart="1852.22" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_487" type="van" depart="1854.35" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_488" type="car" depart="1866.86" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_489" type="car" depart="1867.71" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_490" type="car" depart="1870.31" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_491" type="truck" depart="1891.26" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_492" type="car" depart="1899.20" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_493" type="car" depart="1901.40" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_494" type="car" depart="1911.63" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_495" type="car" depart="1912.55" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_496" type="car" depart="1916.50" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_497" type="car" depart="1921.54" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_498" type="car" depart="1928.54" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_499" type="car" depart="1932.62" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_500" type="car" depart="1935.26" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_501" type="car" depart="1942.80" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_502" type="car" depart="1943.70" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_503" type="car" depart="1951.77" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_504" type="car" depart="1951.98" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_505" type="car" depart="1956.54" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_506" type="car" depart="1963.88" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_507" type="car" depart="1964.54" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_508" type="van" depart="1969.38" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_509" type="car" depart="1970.54" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_510" type="car" depart="1973.03" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_511" type="van" depart="1973.05" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_512" type="van" depart="1977.16" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_513" type="van" depart="1978.22" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_514" type="car" depart="1986.74" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_515" type="van" depart="1988.56" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_516" type="car" depart="1991.09" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_517" type="car" depart="1998.64" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_518" type="car" depart="2000.54" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_519" type="van" depart="2002.54" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_520" type="van" depart="2010.68" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_521" type="car" depart="2020.50" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_522" type="car" depart="2021.97" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_523" type="car" depart="2027.55" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_524" type="car" depart="2030.07" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_525" type="car" depart="2032.46" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_526" type="car" depart="2033.79" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_527" type="car" depart="2034.02" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_528" type="car" depart="2035.26" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_529" type="car" depart="2039.13" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_530" type="car" depart="2040.26" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_531" type="car" depart="2040.33" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_532" type="car" depart="2044.36" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_533" type="car" depart="2051.32" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_534" type="car" depart="2052.32" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_535" type="car" depart="2053.66" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_536" type="car" depart="2065.62" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_537" type="car" depart="2078.28" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_538" type="car" depart="2081.10" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_539" type="car" depart="2083.70" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_540" type="car" depart="2084.37" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_541" type="van" depart="2091.55" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_542" type="car" depart="2092.27" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_543" type="car" depart="2094.66" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_544" type="car" depart="2094.84" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_545" type="car" depart="2095.60" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_546" type="car" depart="2096.87" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_547" type="car" depart="2097.56" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_548" type="car" depart="2108.05" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_549" type="car" depart="2109.81" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_550" type="car" depart="2109.92" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_551" type="car" depart="2117.14" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_552" type="bus" depart="2122.27" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_553" type="car" depart="2127.22" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_554" type="car" depart="2128.73" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_555" type="car" depart="2129.36" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_556" type="car" depart="2129.84" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_557" type="car" depart="2131.08" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_558" type="car" depart="2139.82" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_559" type="car" depart="2139.96" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_560" type="car" depart="2140.41" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_561" type="car" depart="2144.46" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_562" type="car" depart="2151.82" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_563" type="car" depart="2157.19" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_564" type="car" depart="2163.63" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_565" type="car" depart="2163.71" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_566" type="car" depart="2165.48" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_567" type="truck" depart="2169.50" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_568" type="car" depart="2175.66" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_569" type="car" depart="2177.56" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_570" type="car" depart="2180.39" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_571" type="car" depart="2182.75" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_572" type="car" depart="2185.14" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_573" type="bus" depart="2188.13" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_574" type="car" depart="2193.45" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_575" type="car" depart="2196.73" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_576" type="car" depart="2199.90" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_577" type="car" depart="2203.33" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_578" type="car" depart="2204.41" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_579" type="bus" depart="2209.32" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_580" type="car" depart="2214.16" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_581" type="car" depart="2223.18" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_582" type="van" depart="2224.92" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_583" type="car" depart="2228.94" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_584" type="van" depart="2231.83" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_585" type="car" depart="2240.39" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_586" type="car" depart="2243.79" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_587" type="car" depart="2250.86" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_588" type="car" depart="2255.29" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_589" type="car" depart="2258.76" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_590" type="car" depart="2260.82" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_591" type="car" depart="2261.98" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_592" type="car" depart="2263.75" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_593" type="car" depart="2264.06" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_594" type="car" depart="2271.25" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_595" type="truck" depart="2277.21" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_596" type="bus" depart="2280.82" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_597" type="car" depart="2287.01" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_598" type="car" depart="2292.00" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_599" type="car" depart="2295.59" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_600" type="car" depart="2298.41" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_601" type="car" depart="2300.20" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_602" type="car" depart="2302.35" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_603" type="car" depart="2305.70" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_604" type="car" depart="2308.79" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_605" type="car" depart="2311.56" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_606" type="car" depart="2313.43" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_607" type="van" depart="2319.59" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_608" type="car" depart="2320.99" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_609" type="car" depart="2322.61" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_610" type="van" depart="2346.01" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_611" type="truck" depart="2348.81" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_612" type="car" depart="2353.25" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_613" type="car" depart="2360.10" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_614" type="car" depart="2363.01" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_615" type="truck" depart="2375.88" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_616" type="car" depart="2385.45" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_617" type="car" depart="2391.27" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_618" type="car" depart="2399.45" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_619" type="car" depart="2400.90" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_620" type="car" depart="2404.18" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_621" type="car" depart="2414.63" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_622" type="car" depart="2416.36" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_623" type="car" depart="2417.37" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_624" type="car" depart="2417.66" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_625" type="van" depart="2428.64" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_626" type="car" depart="2431.75" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_627" type="car" depart="2434.16" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_628" type="car" depart="2434.26" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_629" type="car" depart="2442.60" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_630" type="car" depart="2444.48" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_631" type="car" depart="2461.40" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_632" type="car" depart="2469.64" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_633" type="car" depart="2471.14" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_634" type="car" depart="2472.13" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_635" type="van" depart="2472.36" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_636" type="car" depart="2474.47" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_637" type="car" depart="2493.43" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_638" type="car" depart="2497.39" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_639" type="car" depart="2499.30" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_640" type="car" depart="2509.81" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_641" type="car" depart="2509.86" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_642" type="car" depart="2515.07" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_643" type="car" depart="2523.65" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_644" type="car" depart="2524.65" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_645" type="car" depart="2535.77" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_646" type="car" depart="2541.31" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_647" type="car" depart="2544.94" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_648" type="car" depart="2549.45" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_649" type="car" depart="2552.09" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_650" type="car" depart="2561.51" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_651" type="car" depart="2572.00" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_652" type="car" depart="2575.39" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_653" type="car" depart="2581.67" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_654" type="car" depart="2582.53" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_655" type="van" depart="2582.92" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_656" type="van" depart="2586.89" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_657" type="car" depart="2589.96" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_658" type="car" depart="2591.64" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_659" type="car" depart="2591.67" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_660" type="bus" depart="2592.09" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_661" type="car" depart="2597.01" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_662" type="car" depart="2598.37" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_663" type="car" depart="2601.23" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_664" type="car" depart="2602.14" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_665" type="car" depart="2604.32" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_666" type="car" depart="2604.41" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_667" type="car" depart="2605.83" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_668" type="car" depart="2606.20" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_669" type="car" depart="2607.06" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_670" type="car" depart="2609.74" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_671" type="van" depart="2613.14" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_672" type="car" depart="2617.63" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_673" type="van" depart="2618.48" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_674" type="car" depart="2621.52" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_675" type="van" depart="2622.78" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_676" type="car" depart="2622.90" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_677" type="van" depart="2623.51" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_678" type="car" depart="2623.68" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_679" type="car" depart="2631.83" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_680" type="car" depart="2634.56" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_681" type="car" depart="2635.83" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_682" type="car" depart="2637.47" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_683" type="car" depart="2637.48" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_684" type="car" depart="2640.42" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_685" type="car" depart="2640.69" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_686" type="car" depart="2640.89" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_687" type="car" depart="2642.38" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_688" type="bus" depart="2642.55" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_689" type="car" depart="2642.75" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_690" type="car" depart="2643.08" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_691" type="car" depart="2645.84" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_692" type="car" depart="2651.54" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_693" type="bus" depart="2651.86" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_694" type="car" depart="2653.62" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_695" type="car" depart="2653.79" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_696" type="bus" depart="2674.87" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_697" type="car" depart="2674.91" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_698" type="car" depart="2676.16" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_699" type="bus" depart="2677.11" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_700" type="car" depart="2681.83" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_701" type="car" depart="2683.64" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_702" type="car" depart="2685.70" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_703" type="car" depart="2686.44" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_704" type="car" depart="2688.16" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_705" type="car" depart="2690.06" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_706" type="car" depart="2691.37" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_707" type="truck" depart="2696.23" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_708" type="van" depart="2698.30" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_709" type="car" depart="2698.56" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_710" type="car" depart="2708.89" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_711" type="car" depart="2714.36" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_712" type="car" depart="2728.96" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_713" type="car" depart="2730.08" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_714" type="van" depart="2730.19" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_715" type="car" depart="2737.19" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_716" type="car" depart="2740.08" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_717" type="car" depart="2745.46" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_718" type="car" depart="2746.61" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_719" type="truck" depart="2752.50" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_720" type="truck" depart="2760.46" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_721" type="car" depart="2763.93" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_722" type="car" depart="2777.14" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_723" type="car" depart="2784.53" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_724" type="car" depart="2792.62" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_725" type="bus" depart="2794.73" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_726" type="car" depart="2797.78" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_727" type="car" depart="2800.36" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_728" type="truck" depart="2810.69" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_729" type="car" depart="2810.81" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_730" type="car" depart="2811.05" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_731" type="car" depart="2812.64" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_732" type="car" depart="2813.63" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_733" type="car" depart="2815.00" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_734" type="van" depart="2816.89" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_735" type="car" depart="2817.61" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_736" type="car" depart="2819.30" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_737" type="van" depart="2822.21" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_738" type="car" depart="2825.10" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_739" type="car" depart="2825.42" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_740" type="car" depart="2825.49" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_741" type="car" depart="2826.06" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_742" type="car" depart="2827.59" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_743" type="car" depart="2829.80" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_744" type="car" depart="2832.85" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_745" type="bus" depart="2835.42" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_746" type="car" depart="2845.87" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_747" type="car" depart="2851.68" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_748" type="van" depart="2853.09" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_749" type="car" depart="2861.36" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_750" type="car" depart="2864.47" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_751" type="car" depart="2868.48" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_752" type="car" depart="2870.99" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_753" type="truck" depart="2874.39" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_754" type="car" depart="2874.53" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_755" type="car" depart="2879.17" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_756" type="car" depart="2879.48" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_757" type="car" depart="2880.85" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_758" type="car" depart="2887.90" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_759" type="car" depart="2888.54" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_760" type="car" depart="2888.94" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_761" type="car" depart="2893.00" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_762" type="car" depart="2894.04" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_763" type="car" depart="2899.21" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_764" type="car" depart="2900.51" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_765" type="car" depart="2901.14" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_766" type="car" depart="2902.35" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_767" type="bus" depart="2903.71" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_768" type="car" depart="2904.12" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_769" type="car" depart="2904.39" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_770" type="car" depart="2906.53" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_771" type="van" depart="2906.79" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_772" type="car" depart="2910.49" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_773" type="car" depart="2913.48" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_774" type="car" depart="2916.93" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_775" type="car" depart="2917.13" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_776" type="car" depart="2921.01" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_777" type="car" depart="2923.12" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_778" type="car" depart="2925.52" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_779" type="car" depart="2931.79" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_780" type="van" depart="2935.08" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_781" type="car" depart="2949.02" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_782" type="car" depart="2949.52" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_783" type="car" depart="2953.22" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_784" type="car" depart="2954.53" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_785" type="car" depart="2955.15" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_786" type="van" depart="2960.07" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_787" type="car" depart="2980.19" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_788" type="car" depart="2983.67" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_789" type="car" depart="2985.53" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_790" type="van" depart="2988.69" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_791" type="car" depart="2989.69" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_792" type="car" depart="2994.76" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_793" type="car" depart="3001.65" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_794" type="car" depart="3004.82" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_795" type="car" depart="3004.90" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_796" type="car" depart="3009.02" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_797" type="car" depart="3011.20" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_798" type="van" depart="3011.76" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_799" type="van" depart="3011.95" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_800" type="car" depart="3013.78" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_801" type="car" depart="3017.89" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_802" type="car" depart="3037.27" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_803" type="van" depart="3047.56" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_804" type="bus" depart="3047.69" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_805" type="car" depart="3052.75" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_806" type="van" depart="3063.07" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_807" type="car" depart="3065.86" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_808" type="car" depart="3074.58" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_809" type="car" depart="3080.63" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_810" type="car" depart="3081.87" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_811" type="car" depart="3082.55" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_812" type="car" depart="3087.19" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_813" type="car" depart="3089.56" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_814" type="car" depart="3095.43" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_815" type="car" depart="3099.50" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_816" type="car" depart="3100.89" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_817" type="car" depart="3107.53" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_818" type="car" depart="3115.61" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_819" type="car" depart="3115.81" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_820" type="truck" depart="3116.25" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_821" type="car" depart="3119.65" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_822" type="car" depart="3122.77" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_823" type="truck" depart="3124.39" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_824" type="car" depart="3125.35" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_825" type="car" depart="3136.08" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_826" type="car" depart="3136.89" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_827" type="car" depart="3141.28" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_828" type="car" depart="3141.55" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_829" type="van" depart="3142.36" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_830" type="car" depart="3145.43" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_831" type="car" depart="3146.87" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_832" type="car" depart="3147.32" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_833" type="car" depart="3153.97" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_834" type="van" depart="3159.33" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_835" type="car" depart="3161.17" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_836" type="car" depart="3165.93" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_837" type="car" depart="3174.30" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_838" type="car" depart="3175.00" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_839" type="car" depart="3175.68" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_840" type="car" depart="3176.30" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_841" type="car" depart="3191.61" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_842" type="truck" depart="3192.81" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_843" type="car" depart="3193.65" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_844" type="car" depart="3197.32" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_845" type="car" depart="3222.97" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_846" type="car" depart="3223.25" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_847" type="car" depart="3224.16" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_848" type="car" depart="3226.59" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_849" type="car" depart="3231.42" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_850" type="car" depart="3231.74" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_851" type="car" depart="3232.02" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_852" type="bus" depart="3243.13" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_853" type="car" depart="3247.21" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_854" type="bus" depart="3249.95" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_855" type="car" depart="3259.17" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_856" type="car" depart="3259.42" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_857" type="car" depart="3265.02" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_858" type="car" depart="3269.42" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_859" type="car" depart="3279.42" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_860" type="van" depart="3280.53" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_861" type="car" depart="3282.32" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_862" type="car" depart="3293.75" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_863" type="car" depart="3294.33" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_864" type="car" depart="3300.57" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_865" type="truck" depart="3300.76" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_866" type="car" depart="3302.01" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_867" type="car" depart="3314.09" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_868" type="car" depart="3315.54" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_869" type="bus" depart="3318.46" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_870" type="car" depart="3318.67" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_871" type="car" depart="3319.03" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_872" type="car" depart="3320.66" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_873" type="bus" depart="3323.68" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_874" type="bus" depart="3330.42" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_875" type="car" depart="3332.12" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_876" type="car" depart="3336.29" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_877" type="car" depart="3337.83" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_878" type="car" depart="3340.41" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_879" type="van" depart="3343.84" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_880" type="car" depart="3352.06" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_881" type="car" depart="3358.15" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_882" type="car" depart="3358.69" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_883" type="car" depart="3359.26" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_884" type="car" depart="3366.84" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_885" type="car" depart="3366.93" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_886" type="bus" depart="3368.90" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_887" type="car" depart="3369.08" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_888" type="car" depart="3373.88" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_889" type="car" depart="3377.45" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_890" type="van" depart="3379.38" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_891" type="bus" depart="3383.00" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_892" type="car" depart="3389.33" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_893" type="car" depart="3395.06" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_894" type="car" depart="3396.28" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_895" type="car" depart="3397.03" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_896" type="bus" depart="3399.75" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_897" type="car" depart="3403.58" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_898" type="van" depart="3409.71" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_899" type="car" depart="3414.13" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_900" type="car" depart="3429.32" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_901" type="car" depart="3429.43" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_902" type="car" depart="3436.06" departLane="best" departSpeed="max">
+        <route edges="left0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_903" type="car" depart="3442.36" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_904" type="car" depart="3448.62" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_905" type="car" depart="3449.83" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_906" type="car" depart="3450.46" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_907" type="bus" depart="3451.36" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_908" type="car" depart="3451.47" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_909" type="van" depart="3456.63" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_910" type="car" depart="3458.54" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_911" type="car" depart="3459.60" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_912" type="car" depart="3462.64" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_913" type="van" depart="3465.19" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_914" type="bus" depart="3471.12" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_915" type="car" depart="3474.18" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_916" type="van" depart="3476.64" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_917" type="van" depart="3479.77" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_918" type="car" depart="3480.61" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_919" type="car" depart="3480.83" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_920" type="car" depart="3480.93" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_921" type="van" depart="3483.68" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_922" type="car" depart="3487.45" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_923" type="car" depart="3494.24" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_924" type="car" depart="3497.23" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_925" type="car" depart="3498.19" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_926" type="car" depart="3500.63" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_927" type="van" depart="3501.22" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_928" type="car" depart="3501.37" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_929" type="car" depart="3501.43" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_930" type="car" depart="3511.91" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_931" type="car" depart="3517.86" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_932" type="car" depart="3523.77" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0right0"/>
+    </vehicle>
+    <vehicle id="asym_3_933" type="car" depart="3525.21" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_934" type="bus" depart="3527.29" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_935" type="car" depart="3531.57" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_936" type="truck" depart="3536.29" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_937" type="car" depart="3537.35" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0bottom0"/>
+    </vehicle>
+    <vehicle id="asym_3_938" type="van" depart="3539.17" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_939" type="car" depart="3539.51" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_940" type="car" depart="3540.15" departLane="best" departSpeed="max">
+        <route edges="right0B0 B0A0 A0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_941" type="car" depart="3540.83" departLane="best" departSpeed="max">
+        <route edges="bottom1B0 B0B1 B1top1"/>
+    </vehicle>
+    <vehicle id="asym_3_942" type="car" depart="3542.55" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_943" type="bus" depart="3542.94" departLane="best" departSpeed="max">
+        <route edges="left1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_944" type="car" depart="3550.02" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_945" type="car" depart="3553.71" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1B0 B0A0 A0left0"/>
+    </vehicle>
+    <vehicle id="asym_3_946" type="bus" depart="3567.41" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_947" type="car" depart="3567.58" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1left1"/>
+    </vehicle>
+    <vehicle id="asym_3_948" type="van" depart="3577.43" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1A0 A0B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_949" type="bus" depart="3581.95" departLane="best" departSpeed="max">
+        <route edges="right1B1 B1B0 B0bottom1"/>
+    </vehicle>
+    <vehicle id="asym_3_950" type="bus" depart="3585.53" departLane="best" departSpeed="max">
+        <route edges="top0A1 A1B1 B1right1"/>
+    </vehicle>
+    <vehicle id="asym_3_951" type="car" depart="3586.86" departLane="best" departSpeed="max">
+        <route edges="top1B1 B1A1 A1top0"/>
+    </vehicle>
+    <vehicle id="asym_3_952" type="car" depart="3588.85" departLane="best" departSpeed="max">
+        <route edges="bottom0A0 A0A1 A1top0"/>
+    </vehicle>
+</routes>
