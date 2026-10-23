@@ -15,6 +15,7 @@ Usage (Colab or locally):
 """
 
 import argparse
+import textwrap
 import os
 
 import numpy as np
@@ -30,10 +31,11 @@ p.add_argument("--mode", default="greedy", choices=["greedy", "sampled"],
                help="greedy: trained agents pick their most likely action (labels B1/B2/E1); "
                     "sampled: trained agents sample actions (labels B1_explore/... renamed to B1/...). "
                     "Baselines (fixed/tuned/random) are the same in both modes.")
+p.add_argument("--scenarios", default="uniform,peak,asym", help="e.g. surge for the robustness test")
 args = p.parse_args()
 os.makedirs(args.out, exist_ok=True)
 
-SCEN = ["uniform", "peak", "asym"]
+SCEN = args.scenarios.split(",")
 ORDER = ["E1", "B1", "B2", "tuned", "fixed", "random"]
 NAMES = {"E1": "E1 learned comm", "B1": "B1 no comm", "B2": "B2 hand-crafted comm",
          "tuned": "Tuned fixed-time (10 s)", "fixed": "Fixed-time (SUMO default)", "random": "Random"}
@@ -166,12 +168,13 @@ plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10, "axes.edgeco
                      "axes.labelcolor": INK2, "xtick.color": INK2, "ytick.color": INK, "figure.facecolor": SURF,
                      "axes.facecolor": SURF})
 MODE_TXT = "greedy actions" if args.mode == "greedy" else "sampled actions"
-TITLE = {"uniform": "Uniform", "peak": "Peak hour", "asym": "Asymmetric"}
+TITLE = {"uniform": "Uniform", "peak": "Peak hour", "asym": "Asymmetric", "surge": "Surge (3x, untrained)"}
 
 
 def bars(metric_col, err_col, xlabel, fname, title, fmt="{:.0f}"):
     shown = [l for l in ORDER if l in labels]
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.2), sharey=True)
+    fig, axes = plt.subplots(1, len(SCEN), figsize=(max(5.5, 13 * len(SCEN) / 3), 4.2), sharey=True, squeeze=False)
+    axes = axes[0]
     for ax, sc in zip(axes, SCEN):
         s = summ[summ.scenario == sc].set_index("label").reindex(shown)
         y = np.arange(len(shown))[::-1]
@@ -192,7 +195,7 @@ def bars(metric_col, err_col, xlabel, fname, title, fmt="{:.0f}"):
         ax.tick_params(axis="y", length=0)
     axes[0].set_yticks(np.arange(len(shown))[::-1])
     axes[0].set_yticklabels([NAMES[l] for l in shown])
-    fig.suptitle(title, x=0.01, ha="left", color=INK, fontsize=12)
+    fig.suptitle(textwrap.fill(title, 46 * len(SCEN)), x=0.01, ha="left", color=INK, fontsize=12)
     fig.tight_layout()
     fig.savefig(os.path.join(args.out, fname), dpi=200)
     plt.close(fig)
@@ -205,7 +208,8 @@ bars("teleports_mean", None, "Mean teleports per episode (vehicles stuck 300 s)"
 
 # per-seed paired view for the learned controllers
 shown = [l for l in ["E1", "B1", "B2"] if l in labels]
-fig, axes = plt.subplots(1, 3, figsize=(13, 4), sharey=False)
+fig, axes = plt.subplots(1, len(SCEN), figsize=(max(5.5, 13 * len(SCEN) / 3), 4), sharey=False, squeeze=False)
+axes = axes[0]
 for ax, sc in zip(axes, SCEN):
     for l in shown:
         d = df[(df.label == l) & (df.scenario == sc)].sort_values("seed")
@@ -225,8 +229,7 @@ for ax, sc in zip(axes, SCEN):
 axes[0].set_ylabel("True delay (s)")
 h, lab = axes[0].get_legend_handles_labels()
 fig.legend(h, lab, frameon=False, fontsize=9, loc="lower center", ncol=len(lab))
-fig.suptitle(f"Per-seed true delay of the learned controllers, {MODE_TXT} (dashed: fixed-time baselines' means)",
-             x=0.01, ha="left", color=INK, fontsize=12)
+fig.suptitle(textwrap.fill(f"Per-seed true delay of the learned controllers, {MODE_TXT} (dashed: fixed-time baselines' means)", 46 * len(SCEN)), x=0.01, ha="left", color=INK, fontsize=12)
 fig.tight_layout(rect=(0, 0.08, 1, 1))
 fig.savefig(os.path.join(args.out, "fig_4x4_per_seed.png"), dpi=200)
 plt.close(fig)

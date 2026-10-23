@@ -10,6 +10,7 @@ Same route files per (scenario, seed), so each controller's two modes are paired
 """
 
 import argparse
+import textwrap
 import os
 
 import numpy as np
@@ -19,10 +20,11 @@ from scipy import stats
 p = argparse.ArgumentParser()
 p.add_argument("csvs", nargs="+")
 p.add_argument("--out", default="results/4x4_modes")
+p.add_argument("--scenarios", default="uniform,peak,asym", help="e.g. surge for the robustness test")
 args = p.parse_args()
 os.makedirs(args.out, exist_ok=True)
 
-SCEN = ["uniform", "peak", "asym"]
+SCEN = args.scenarios.split(",")
 CONDS = ["E1", "B1", "B2"]
 NAMES = {"E1": "E1 learned comm", "B1": "B1 no comm", "B2": "B2 hand-crafted comm"}
 df = pd.concat([pd.read_csv(c) for c in args.csvs], ignore_index=True)
@@ -59,8 +61,9 @@ INK, INK2, GRID, SURF = "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb"
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10, "axes.edgecolor": GRID,
                      "axes.labelcolor": INK2, "xtick.color": INK2, "ytick.color": INK,
                      "figure.facecolor": SURF, "axes.facecolor": SURF})
-TITLE = {"uniform": "Uniform", "peak": "Peak hour", "asym": "Asymmetric"}
-fig, axes = plt.subplots(1, 3, figsize=(13, 3.6), sharey=True)
+TITLE = {"uniform": "Uniform", "peak": "Peak hour", "asym": "Asymmetric", "surge": "Surge (3x, untrained)"}
+fig, axes = plt.subplots(1, len(SCEN), figsize=(max(5.5, 13 * len(SCEN) / 3), 3.6), sharey=True, squeeze=False)
+axes = axes[0]
 for ax, sc in zip(axes, SCEN):
     t = T[T.scenario == sc].set_index("cond").reindex(CONDS)
     y = np.arange(len(CONDS))[::-1]
@@ -84,8 +87,7 @@ fig.legend(handles=[Line2D([], [], marker="o", linestyle="", color=INK2, markers
                     Line2D([], [], marker="D", linestyle="", markerfacecolor="none", markeredgecolor=INK2,
                            markeredgewidth=2, markersize=8, label="Sampled (seeded)")],
            loc="lower center", ncol=2, frameon=False)
-fig.suptitle("4x4 grid: greedy vs sampled actions for the learned controllers (10 seeds each)",
-             x=0.01, ha="left", color=INK, fontsize=12)
+fig.suptitle(textwrap.fill("4x4 grid: greedy vs sampled actions for the learned controllers (10 seeds each)", 46 * len(SCEN)), x=0.01, ha="left", color=INK, fontsize=12)
 fig.tight_layout(rect=(0, 0.1, 1, 1))
 fig.savefig(os.path.join(args.out, "fig_4x4_greedy_vs_sampled.png"), dpi=200)
 print(f"\nSaved to {args.out}")

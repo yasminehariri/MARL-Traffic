@@ -22,6 +22,7 @@ Usage in Colab (from the repo root):
   !python scripts/generate_routes_4x4.py --train          # Uniform training seeds 100-104 + sanity check
   !python scripts/generate_routes_4x4.py --train-all      # Peak + Asymmetric training seeds 100-104 + sanity check
   !python scripts/generate_routes_4x4.py --grid 2x2 --everything   # 2x2: all 45 files (eval 0-9 + train 100-104)
+  !python scripts/generate_routes_4x4.py --surge                   # robustness test: 4x4 surge, seeds 0-9
 
 Same generator and settings for both grids (112.5 veh/hr per entry, same vehicle mix, same
 peak window and asymmetric ratio), so 2x2 and 4x4 traffic are directly comparable.
@@ -45,6 +46,11 @@ EPISODE_END = 3600          # seconds, matches the 3600-step episodes
 PER_ENTRY_RATE = 112.5      # veh/hr per fringe entry (matched to 2x2)
 PEAK_WINDOW = (720, 1800)   # seconds where demand doubles (20%-50% of the episode)
 PEAK_MULTIPLIER = 2.0
+# Robustness test (RQ4), never used in training: a sudden surge to 3x the uniform rate on
+# every entry at once, for 20 minutes mid-episode, then back to normal. 3x (not the scope's
+# 2x) because 2x is already the trained peak scenario, so 2x would not be out-of-distribution.
+SURGE_WINDOW = (1200, 2400)
+SURGE_MULTIPLIER = 3.0
 ASYM_RATIO = 4.0            # north entries get 4x the per-entry rate of the others
 SEEDS = range(10)               # evaluation only, never seen in training
 TRAIN_SEEDS = range(100, 105)   # training only (Uniform), kept separate from evaluation
@@ -90,6 +96,8 @@ def entry_rates(entries, scenario):
 def rate_at(base_rate, t, scenario):
     if scenario == "peak" and PEAK_WINDOW[0] <= t < PEAK_WINDOW[1]:
         return base_rate * PEAK_MULTIPLIER
+    if scenario == "surge" and SURGE_WINDOW[0] <= t < SURGE_WINDOW[1]:
+        return base_rate * SURGE_MULTIPLIER
     return base_rate
 
 
@@ -176,6 +184,8 @@ if __name__ == "__main__":
     g.add_argument("--train", action="store_true", help="Uniform training seeds 100-104, with sanity check")
     g.add_argument("--train-all", dest="train_all", action="store_true",
                    help="Peak and Asymmetric training seeds 100-104 (Uniform ones come from --train)")
+    g.add_argument("--surge", action="store_true",
+                   help="robustness test: surge scenario, evaluation seeds 0-9 only (never trained on)")
     g.add_argument("--everything", action="store_true",
                    help="all 3 scenarios: evaluation seeds 0-9 AND training seeds 100-104 (45 files)")
     p.add_argument("--grid", default="4x4", choices=sorted(NETS),
@@ -185,7 +195,10 @@ if __name__ == "__main__":
     NET = os.path.join(CONFIGS, NETS[GRID])
     print(f"Grid {GRID}: {NET}", flush=True)
 
-    if a.everything:
+    if a.surge:
+        for s in SEEDS:
+            build("surge", s, check=True)
+    elif a.everything:
         for sc in SCENARIOS:
             for s in list(SEEDS) + list(TRAIN_SEEDS):
                 build(sc, s, check=True)
