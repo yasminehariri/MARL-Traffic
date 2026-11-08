@@ -124,7 +124,9 @@ idx = rng.choice(len(msg), size=min(args.tsne_n, len(msg)), replace=False)
 emb = TSNE(n_components=2, perplexity=30, init="pca", random_state=0).fit_transform(msg[idx])
 fig = plt.figure(figsize=(12, 5))
 ax = fig.add_axes([0.05, 0.1, 0.42, 0.78])
-sc = ax.scatter(emb[:, 0], emb[:, 1], c=qtot[idx], cmap="Blues", s=5, vmin=-8, vmax=np.percentile(qtot, 99))
+from matplotlib.colors import ListedColormap
+blues = ListedColormap(plt.get_cmap("Blues")(np.linspace(0.3, 1.0, 256)))  # 0 stays visible on white
+sc = ax.scatter(emb[:, 0], emb[:, 1], c=qtot[idx], cmap=blues, s=5, vmin=0, vmax=np.percentile(qtot, 99))
 fig.colorbar(sc, ax=ax, label="Sender's halted vehicles (4 approaches)", fraction=0.046)
 ax.set_title("t-SNE of E1 messages, coloured by sender congestion", loc="left", color=INK, fontsize=10)
 ax.set_xticks([]); ax.set_yticks([]); clean(ax)

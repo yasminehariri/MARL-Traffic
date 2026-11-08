@@ -36,8 +36,8 @@ args = p.parse_args()
 os.makedirs(args.out, exist_ok=True)
 
 SCEN = args.scenarios.split(",")
-ORDER = ["E1", "B1", "B2", "tuned", "fixed", "random"]
-NAMES = {"E1": "E1 learned comm", "B1": "B1 no comm", "B2": "B2 hand-crafted comm",
+ORDER = ["E1", "E1_from2x2", "B1", "B2", "tuned", "fixed", "random"]
+NAMES = {"E1": "E1 learned comm", "E1_from2x2": "E1 trained on 2x2 (zero-shot)", "B1": "B1 no comm", "B2": "B2 hand-crafted comm",
          "tuned": "Tuned fixed-time (10 s)", "fixed": "Fixed-time (SUMO default)", "random": "Random"}
 
 # ---------- merge and sanity checks ----------
@@ -162,12 +162,14 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 # validated categorical palette, fixed order by condition (never by rank)
-COL = {"E1": "#2a78d6", "B1": "#eb6834", "B2": "#1baf7a", "tuned": "#eda100", "fixed": "#e87ba4", "random": "#008300"}
+COL = {"E1": "#2a78d6", "E1_from2x2": "#86b3ea", "B1": "#eb6834", "B2": "#1baf7a", "tuned": "#eda100", "fixed": "#e87ba4", "random": "#008300"}
 INK, INK2, GRID, SURF = "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb"
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10, "axes.edgecolor": GRID,
                      "axes.labelcolor": INK2, "xtick.color": INK2, "ytick.color": INK, "figure.facecolor": SURF,
                      "axes.facecolor": SURF})
 MODE_TXT = "greedy actions" if args.mode == "greedy" else "sampled actions"
+_grids = sorted(df["grid"].dropna().unique()) if "grid" in df else []
+GRID_TXT = (_grids[0] if len(_grids) == 1 else "4x4") + " grid"
 TITLE = {"uniform": "Uniform", "peak": "Peak hour", "asym": "Asymmetric", "surge": "Surge (3x, untrained)"}
 
 
@@ -186,7 +188,7 @@ def bars(metric_col, err_col, xlabel, fname, title, fmt="{:.0f}"):
         xmax = np.nanmax(vals + (err if err is not None else 0))
         for yi, v, e in zip(y, vals, err if err is not None else np.zeros(len(vals))):
             ax.text(v + e + xmax * 0.02, yi, fmt.format(v), va="center", ha="left", color=INK, fontsize=9)
-        ax.set_xlim(0, xmax * 1.22)
+        ax.set_xlim(0, xmax * 1.22 if xmax > 0 else 1)
         ax.set_title(TITLE[sc], color=INK, fontsize=11, loc="left")
         ax.grid(axis="x", color=GRID, linewidth=1, zorder=0)
         ax.set_xlabel(xlabel)
@@ -202,9 +204,9 @@ def bars(metric_col, err_col, xlabel, fname, title, fmt="{:.0f}"):
 
 
 bars("mean", "ci95", "Mean true delay per vehicle (s)", "fig_4x4_true_delay.png",
-     f"4x4 grid, {MODE_TXT}: mean true delay per vehicle (10 evaluation seeds, 95% CI). Lower is better.")
+     f"{GRID_TXT}, {MODE_TXT}: mean true delay per vehicle (10 evaluation seeds, 95% CI). Lower is better.")
 bars("teleports_mean", None, "Mean teleports per episode (vehicles stuck 300 s)", "fig_4x4_teleports.png",
-     f"4x4 grid, {MODE_TXT}: teleports per episode (gridlock indicator). Lower is better.", fmt="{:.1f}")
+     f"{GRID_TXT}, {MODE_TXT}: teleports per episode (gridlock indicator). Lower is better.", fmt="{:.1f}")
 
 # per-seed paired view for the learned controllers
 shown = [l for l in ["E1", "B1", "B2"] if l in labels]
