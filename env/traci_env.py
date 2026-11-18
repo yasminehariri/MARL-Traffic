@@ -93,6 +93,30 @@ def _derive_adjacent_lights(net_path, tl_ids, lane_ids):
 
 ADJACENT = _derive_adjacent_lights(NET_FILE, TL_IDS, LANE_IDS)
 
+# Sensor-failure test (evaluation only). MARL_BLIND lists failed queue detectors, comma-separated:
+#   "B1"   all 4 detectors of light B1 fail
+#   "B1:2" only the detector of B1's lane for action 2 fails (lane order = action order)
+# A failed detector reads 0 ("stuck at zero", the fault model of Rodrigues & Azevedo 2019). The light's
+# own observation AND what it shares with its neighbours (B2 messages, E1 neighbour inputs) lose that
+# value; phase and timer still work, since the controller knows its own state. Empty (default) = all
+# detectors work, identical to every earlier run.
+BLIND = [t for t in os.environ.get("MARL_BLIND", "").split(",") if t]
+FAILED = {}
+for _entry in BLIND:
+    _tl, _, _slot = _entry.partition(":")
+    if _tl not in TL_IDS:
+        raise ValueError(f"MARL_BLIND has unknown light ID {_tl!r}; valid: {TL_IDS}")
+    if _slot and _slot not in ("0", "1", "2", "3"):
+        raise ValueError(f"MARL_BLIND entry {_entry!r}: detector slot must be 0-3")
+    FAILED.setdefault(_tl, set()).update({int(_slot)} if _slot else {0, 1, 2, 3})
+
+
+def apply_sensor_failure(tl_id, q):
+    """Queue readings of a light after its failed detectors are forced to 0 (no-op if none failed)."""
+    bad = FAILED.get(tl_id)
+    return q if not bad else [0.0 if k in bad else v for k, v in enumerate(q)]
+
+
 NUM_AGENTS = len(TL_IDS)
 
 
@@ -167,6 +191,7 @@ class TraCIEnv:
         for tl_id in self.agents:
             lanes = LANE_IDS[tl_id]
             q = [min(traci.lane.getLastStepHaltingNumber(l), MAX_QUEUE) / MAX_QUEUE for l in lanes]
+            q = apply_sensor_failure(tl_id, q)
             phase_idx = self.green[tl_id] // 2
             phase_onehot = [1.0 if phase_idx == i else 0.0 for i in range(PHASES)]
             elapsed_ratio = min(self.elapsed[tl_id] / MAX_PHASE_DURATION, 1.0)
@@ -184,6 +209,7 @@ class TraCIEnv:
         for tl_id in self.agents:
             lanes = LANE_IDS[tl_id]
             q = [min(traci.lane.getLastStepHaltingNumber(l), MAX_QUEUE) / MAX_QUEUE for l in lanes]
+            q = apply_sensor_failure(tl_id, q)
             messages[tl_id] = q
         return messages
 

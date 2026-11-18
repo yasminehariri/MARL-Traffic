@@ -49,9 +49,9 @@ python scripts/generate_routes_4x4.py --surge
 
 **2. Training** (500k environment steps, about 3 to 3.5 hours each on Colab; the 2x2 run takes about 1.2 hours):
 ```
-python scripts/train_4x4.py --cond E1 --reward local
-python scripts/train_4x4.py --cond B1 --reward local
-python scripts/train_4x4.py --cond B2 --reward local
+python scripts/train_4x4.py --cond E1 --reward local --train-scenarios uniform,peak,asym
+python scripts/train_4x4.py --cond B1 --reward local --train-scenarios uniform,peak,asym
+python scripts/train_4x4.py --cond B2 --reward local --train-scenarios uniform,peak,asym
 python scripts/train_4x4.py --cond E1 --reward local --grid 2x2
 ```
 Checkpoints go to `MARL_checkpoints/<grid>/<cond>_local_mg5/`. Add `--resume` to continue an interrupted run.
@@ -72,6 +72,14 @@ The same pattern applies for B1, B2, tuned and random. The minimum green is read
 python scripts/check_messages_4x4.py --ckpt <E1 checkpoint> --eval-csv MARL_results/4x4_eval_mg5_E1.csv
 python scripts/interpret_messages_4x4.py --npz results/mg5/e1_messages_4x4_mg5/messages_4x4.npz --report results/mg5/e1_messages_4x4_mg5/message_report.json --out results/mg5/final/messages
 ```
+
+**4b. Sensor-failure test (robustness, RQ4):** all four queue detectors of light B1 (an inner light with four working neighbours) read 0 during evaluation, as if broken ("stuck at zero", the fault model of Rodrigues & Azevedo, 2019). B1's phase and timer still work, and what B1 shares with its neighbours (B2 messages, E1 neighbour inputs) also carries zero queues. No retraining. A second run adds the usual real-world fallback: with `--failsafe`, B1 runs the tuned fixed-time cycle instead of its agent while its detectors are down; the other 15 lights keep their agents. Example for E1:
+```
+python scripts/evaluate_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1 --label E1_blind --out MARL_results/4x4_blind_mg5_E1.csv
+python scripts/evaluate_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1 --explore --label E1_blind_explore --out MARL_results/4x4_blind_mg5_explore_E1.csv
+python scripts/evaluate_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1 --failsafe --label E1_blind_failsafe --out MARL_results/4x4_blind_failsafe_mg5_E1.csv
+```
+The same for B1 and B2. Without `--blind` every detector works, exactly as in all other runs. Checks: `python tests/test_sensor_failure.py` (exactly the failed readings change, nothing else) and `python tests/test_failsafe.py <checkpoint>` (B1 follows the fixed cycle, all other lights keep their agent's actions).
 
 **5. Tables, statistics and figures:** the exact commands are at the end of [`results/mg5/final/README.md`](results/mg5/final/README.md).
 

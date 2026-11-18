@@ -53,6 +53,14 @@ p.add_argument("--out", default=None,
 p.add_argument("--min-green", type=int, default=None,
                help="trained conditions: read automatically from the checkpoint's run_info.json (pass only to "
                     "double-check). tuned/random: default 5. fixed: not used (SUMO's own program)")
+p.add_argument("--blind", default="",
+               help="sensor-failure test: failed queue detectors, comma-separated: 'B1' = all 4 detectors of "
+                    "light B1, 'B1:2' = only the detector of B1's lane for action 2. A failed detector "
+                    "reads 0. Trained conditions only. The FYP test uses --blind B1.")
+p.add_argument("--failsafe", action="store_true",
+               help="with --blind: every light with a failed detector runs the tuned fixed-time cycle "
+                    "(--green s greens) instead of its agent, the usual fallback of real signals when a "
+                    "detector fault is flagged. All other lights keep their agents.")
 p.add_argument("--grid", default="4x4", choices=["4x4", "2x2"],
                help="grid to evaluate ON (a 2x2-trained E1 can be evaluated on 4x4 for RQ3)")
 args = p.parse_args()
@@ -60,6 +68,19 @@ args = p.parse_args()
 if args.cond in ("B1", "B2", "E1") and not args.ckpt:
     sys.exit("--ckpt is required for trained conditions")
 LABEL = args.label or args.cond
+if args.blind:
+    if args.cond not in ("B1", "B2", "E1"):
+        sys.exit("--blind only makes sense for trained controllers (fixed, tuned and random use no sensors)")
+    if not args.out:
+        sys.exit("--blind needs an explicit --out, so sensor-failure rows never mix with normal results")
+    os.environ["MARL_BLIND"] = args.blind  # read by env/traci_env.py when it is imported below
+    print(f"Sensor failure: queue detectors OFF at {args.blind}", flush=True)
+FAILED_LIGHTS = sorted({e.partition(":")[0] for e in args.blind.split(",") if e})
+if args.failsafe:
+    if not args.blind:
+        sys.exit("--failsafe needs --blind (it decides what the lights with failed detectors do)")
+    print(f"Fail-safe: {','.join(FAILED_LIGHTS)} run fixed-time ({args.green} s greens) instead of their agent",
+          flush=True)
 a, b = (args.seeds.split("-") + [None])[:2]
 SEEDS = list(range(int(a), int(b) + 1)) if b else [int(s) for s in args.seeds.split(",")]
 SCENARIOS = args.scenarios.split(",")
@@ -91,7 +112,7 @@ sys.path.insert(0, REPO)
 TRIPINFO_ENV = f"{REPO}/configs/tripinfo.xml"  # written by both sumocfg files
 FIELDS = ["label", "cond", "scenario", "seed", "generated", "entered", "finished",
           "wait_finished", "true_delay", "mean_travel_time", "teleports", "explore", "ckpt", "time",
-          "min_green", "switches_per_light_h", "grid"]
+          "min_green", "switches_per_light_h", "grid"] + (["blind", "failsafe"] if args.blind else [])
 
 
 def metrics(tripinfo, route):
@@ -127,6 +148,10 @@ def done_rows():
         if file_mg and file_mg != {MIN_GREEN}:
             sys.exit(f"{args.out} holds rows with min_green {sorted(file_mg)}, this run uses {MIN_GREEN}. "
                      f"Use a different --out so the two rule sets never mix.")
+    file_blind = {(r.get("blind") or "", int(r.get("failsafe") or 0)) for r in rows}
+    if rows and file_blind != {(args.blind, int(args.failsafe))}:
+        sys.exit(f"{args.out} holds rows with sensor failure / fail-safe {sorted(file_blind)}, this run uses "
+                 f"{(args.blind or 'none', int(args.failsafe))}. Use a different --out.")
     return {(r["label"], r["scenario"], int(r["seed"])) for r in rows}
 
 
@@ -211,6 +236,13 @@ def build_trained():
     print(f"Restored {args.cond} from {args.ckpt}", flush=True)
     choose = lambda obs, t: {aid: algo.compute_single_action(o, policy_id="shared_policy", explore=args.explore)
                              for aid, o in obs.items()}
+    if args.failsafe:
+        # the agents still choose for every light (so sampled actions of the other lights are drawn
+        # exactly as without the fail-safe); the failed lights' choices are then replaced
+        period = args.green + 3  # green + 3 s yellow inserted by the env, as for --cond tuned
+        agent_choose = choose
+        choose = lambda obs, t: {aid: ((t // period) % 4 if aid in FAILED_LIGHTS else a)
+                                 for aid, a in agent_choose(obs, t).items()}
     return Env, choose
 
 
@@ -248,6 +280,8 @@ def main():
         row = dict(label=LABEL, cond=args.cond, scenario=sc, seed=s, explore=int(args.explore),
                    ckpt=args.ckpt or (f"green={args.green}" if args.cond == "tuned" else ""),
                    time=time.strftime("%Y-%m-%d %H:%M:%S"), min_green=MIN_GREEN, grid=args.grid, **m)
+        if args.blind:
+            row["blind"], row["failsafe"] = args.blind, int(args.failsafe)
         write_row(row)
         print(f"{LABEL:8s} {sc:8s} seed{s}: entered {m['entered']}/{m['generated']} | finished {m['finished']} | "
               f"true delay {m['true_delay']:7.2f}s | wait(fin) {m['wait_finished']:7.2f}s | "
