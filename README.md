@@ -24,6 +24,7 @@ Sixteen traffic lights on a 4x4 SUMO grid are each controlled by a reinforcement
 | `results/mg5/final/` | Final tables, statistical tests and figures |
 | `results/` (other) | Version 1 results (no minimum green), kept for the record |
 | `demo/` | 3D replay of recorded simulations (see [`demo/README.md`](demo/README.md)) |
+| `site/` | Results website and its generated data (see [`site/README.md`](site/README.md)) |
 | `tests/` | Environment and model tests |
 
 ## Setup
@@ -79,8 +80,15 @@ python scripts/evaluate_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1 --lab
 python scripts/evaluate_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1 --explore --label E1_blind_explore --out MARL_results/4x4_blind_mg5_explore_E1.csv
 python scripts/evaluate_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1 --failsafe --label E1_blind_failsafe --out MARL_results/4x4_blind_failsafe_mg5_E1.csv
 ```
-The same for B1 and B2. Without `--blind` every detector works, exactly as in all other runs. Checks: `python tests/test_sensor_failure.py` (exactly the failed readings change, nothing else) and `python tests/test_failsafe.py <checkpoint>` (B1 follows the fixed cycle, all other lights keep their agent's actions).
+The same for B1 and B2. Without `--blind` every detector works, exactly as in all other runs. To test whether E1's messages are what protects it, E1 is also run with the failure and its messages replaced by their average (`--ablate-messages`, the same constant as the message-ablation check, read from `results/mg5/e1_messages_4x4_mg5/messages_4x4.npz`):
+```
+python scripts/evaluate_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1 --ablate-messages --label E1_blind_ablated --out MARL_results/4x4_blind_ablated_mg5_E1.csv
+python scripts/evaluate_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1 --ablate-messages --explore --label E1_blind_ablated_explore --out MARL_results/4x4_blind_ablated_mg5_explore_E1.csv
+```
+Checks: `python tests/test_sensor_failure.py` (exactly the failed readings change, nothing else) and `python tests/test_failsafe.py <checkpoint>` (B1 follows the fixed cycle, all other lights keep their agent's actions).
 
 **5. Tables, statistics and figures:** the exact commands are at the end of [`results/mg5/final/README.md`](results/mg5/final/README.md).
 
-**6. Demo:** see [`demo/README.md`](demo/README.md).
+**6. Demo:** see [`demo/README.md`](demo/README.md). Check it with `python tests/test_viewer.py`.
+
+**7. Results website:** `python scripts/export_site_data.py --check` turns the results into `site/data/*.json` (format: [`site/data/README.md`](site/data/README.md)). The site itself is in `site/` (see [`site/README.md`](site/README.md)) and is published by `.github/workflows/pages.yml`.

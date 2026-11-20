@@ -22,7 +22,7 @@ Examples:
     python scripts/render_demo_video.py --run E1 --vs fixed --cam aerial --out demo_E1_vs_fixed.mp4
     python scripts/render_demo_video.py --run E1 --seconds 5 --width 1280 --height 720 --out test.mp4   # quick test
 """
-import argparse, functools, http.server, os, shutil, subprocess, sys, tempfile, threading, time
+import argparse, functools, http.server, json, os, shutil, subprocess, sys, tempfile, threading, time
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CAMS = ["cinematic", "skyline", "aerial", "junction", "street", "follow"]
@@ -44,8 +44,10 @@ p.add_argument("--out", default=None)
 args = p.parse_args()
 
 out = os.path.abspath(args.out or f"demo_{args.run}{'_vs_' + args.vs if args.vs else ''}.mp4")
+_manifest = os.path.join(args.demo_dir, "runs.json")
+FILES = {r["id"]: r["file"] for r in json.load(open(_manifest))["runs"]} if os.path.exists(_manifest) else {}
 for rid in [args.run] + ([args.vs] if args.vs else []):
-    f = os.path.join(args.demo_dir, f"run_{rid}.json")
+    f = os.path.join(args.demo_dir, FILES.get(rid, f"run_{rid}.json"))
     if not os.path.exists(f):
         sys.exit(f"Missing {f}. Record it first (see demo/README.md).")
 
@@ -72,7 +74,9 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
 handler = functools.partial(QuietHandler, directory=args.demo_dir)
 server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
 threading.Thread(target=server.serve_forever, daemon=True).start()
-url = f"http://127.0.0.1:{server.server_address[1]}/index.html?render"
+# the page picks the controller(s) from the URL and sets window.__ready once they are loaded
+url = (f"http://127.0.0.1:{server.server_address[1]}/index.html?render&run={args.run}"
+       + (f"&vs={args.vs}" if args.vs else ""))
 
 from playwright.sync_api import sync_playwright
 
@@ -87,12 +91,7 @@ with sync_playwright() as pw:
     page = browser.new_page(viewport={"width": args.width, "height": args.height}, device_scale_factor=1)
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
-    three_dir = os.environ.get("MARL_THREE_DIR")  # optional: serve three.js from a local npm copy (offline machines)
-    if three_dir:
-        prefix = "https://cdn.jsdelivr.net/npm/three@0.160.0/"
-        page.route(prefix + "**", lambda route: route.fulfill(
-            path=os.path.join(three_dir, route.request.url[len(prefix):].split("?")[0]), content_type="application/javascript"))
-        page.route("https://fonts.googleapis.com/**", lambda route: route.abort())
+    page.route("https://fonts.googleapis.com/**", lambda route: route.abort())  # system fonts; three.js is in demo/vendor
     page.goto(url)
     try:
         page.wait_for_function("window.__ready === true", timeout=180_000)
@@ -100,11 +99,10 @@ with sync_playwright() as pw:
         msg = page.inner_text("#loadMsg") if page.query_selector("#loadMsg") else ""
         sys.exit(f"The demo page did not finish loading. {msg} {' '.join(errors)}")
 
-    # choose controller(s); select_option fires the page's change handlers
-    page.select_option("#runSel", args.run)
+    state = page.evaluate("window.viewer.state()")
+    if state["run"] != args.run or (args.vs and state["compare"] != args.vs):
+        sys.exit(f"The page could not show {args.run}{' vs ' + args.vs if args.vs else ''} (got {state}).")
     if args.vs:
-        page.click("#splitBtn")
-        page.select_option("#runSel2", args.vs)
         page.set_viewport_size({"width": args.width, "height": args.height})  # re-layout both halves
     if not args.show_dock:
         page.add_style_tag(content="#dock{display:none!important}")

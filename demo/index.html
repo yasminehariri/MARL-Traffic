@@ -51,7 +51,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 #scrub { flex: 1; min-width: 160px; accent-color: var(--accent); }
 .sep { width: 1px; height: 22px; background: var(--glass-line); margin: 0 4px; }
 #split-labels { position: absolute; inset: 0; pointer-events: none; }
-#split-labels div { position: absolute; top: calc(170px + env(safe-area-inset-top, 0px)); padding: 6px 10px; border-radius: 9px; background: var(--glass);
+#split-labels div { position: absolute; top: calc(252px + env(safe-area-inset-top, 0px)); max-width: calc(50% - 44px); padding: 6px 10px; border-radius: 9px; background: var(--glass);
   border: 1px solid var(--glass-line); font-size: 13px; font-weight: 600; }
 #split-labels .l { left: calc(14px + env(safe-area-inset-left, 0px)); }
 #split-labels .r { left: calc(50% + 14px); }
@@ -62,6 +62,10 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 #loading .t { font-size: 20px; font-weight: 700; }
 #loading .s { font-family: var(--mono); font-size: 12px; color: var(--ink-2); margin-top: 8px; }
 #note { font-size: 11px; color: var(--amber); }
+#failLine { margin-top: 6px; font-family: var(--mono); font-size: 11px; color: var(--stop); letter-spacing: .04em; text-transform: uppercase; }
+/* ?ui=0 hides every panel (for embedding in another page); ?dock=0 hides only the playback bar */
+body.ui-none #brand, body.ui-none #stats, body.ui-none #dock, body.ui-none #split-labels { display: none !important; }
+body.dock-none #dock { display: none !important; }
 @media (max-width: 760px) {
   #stats { top: calc(84px + env(safe-area-inset-top, 0px)); left: 14px; right: 14px; width: auto; padding: 8px 12px; }
   .statgrid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
@@ -81,6 +85,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   <h1>Traffic Twin 4×4</h1>
   <p>Replay of a real simulation: 16 traffic lights, each run by its own learning agent. Every vehicle, light change and queue is taken from SUMO, second by second.</p>
   <div class="scene" id="sceneLine">Peak hour · evaluation seed 0</div>
+  <div id="failLine" hidden></div>
 </div>
 
 <div id="stats" class="panel">
@@ -135,8 +140,8 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 
 <script type="importmap">
 { "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  "three": "./vendor/three/build/three.module.js",
+  "three/addons/": "./vendor/three/examples/jsm/"
 } }
 </script>
 <script type="module">
@@ -149,8 +154,9 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
-// Recorded runs this page knows about. Missing files are skipped.
-const RUNS = [
+// Recorded runs this page knows about. runs.json (next to this page, or ?manifest=<file>) replaces this
+// list when it exists; files that are missing are skipped either way.
+const BUILTIN_RUNS = [
   { id: 'E1', file: 'run_E1.json', name: 'E1 · learned communication', color: '#5ee0ff' },
   { id: 'B1', file: 'run_B1.json', name: 'B1 · no communication', color: '#ff9a5c' },
   { id: 'B2', file: 'run_B2.json', name: 'B2 · hand-crafted communication', color: '#4fe3a3' },
@@ -164,6 +170,8 @@ const $ = s => document.querySelector(s);
 const loadMsg = t => { $('#loadMsg').textContent = t; };
 const params = new URLSearchParams(location.search);
 const RENDER_MODE = location.hash === '#render' || params.has('render');
+if (params.get('ui') === '0') document.body.classList.add('ui-none');
+if (params.get('dock') === '0') document.body.classList.add('dock-none');
 
 // ---------------------------------------------------------------- world helpers
 const C = 500; // network centre (SUMO coords 0..1000)
@@ -635,20 +643,50 @@ async function buildCity() {
       g.fillStyle = '#5ee0ff'; g.font = '600 30px JetBrains Mono, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t.id, w / 2, h / 2 + 1); }, false);
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true })); s.position.copy(t.pos).setY(22); s.scale.set(16, 8, 1); labelGroup.add(s);
   }
+  // sensor-failure markers (shown only for runs recorded with failed detectors, see prepRun)
+  for (const t of TL) {
+    const tex = canvasTex(256, 96, (g, w, h) => { g.fillStyle = 'rgba(60,6,10,.85)'; g.beginPath(); g.roundRect(4, 6, w - 8, h - 12, 16); g.fill();
+      g.strokeStyle = '#ff5a5f'; g.lineWidth = 4; g.stroke();
+      g.fillStyle = '#ffd6d7'; g.font = '700 30px JetBrains Mono, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('SENSORS OFF', w / 2, h / 2 + 1); }, false);
+    // sizeAttenuation off: the tag keeps the same size on screen from every camera distance
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true, sizeAttenuation: false })); s.position.copy(t.pos).setY(30); s.scale.set(0.16, 0.06, 1);
+    s.visible = false; s.renderOrder = 10; scene.add(s); t.failSprite = s;
+    const ring = new THREE.Mesh(new THREE.RingGeometry(18, 23, 64), new THREE.MeshBasicMaterial({ color: 0xff3b3f, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2; ring.position.copy(t.pos).setY(0.25); ring.visible = false; scene.add(ring); t.failRing = ring;
+  }
 }
 
 // ---------------------------------------------------------------- runs (recorded simulations)
 const runs = {};
-async function loadRuns() {
-  const loaded = [];
-  for (const r of RUNS) {
-    try {
-      loadMsg('loading ' + r.name);
-      const res = await fetch(r.file); if (!res.ok) continue;
-      const d = await res.json(); d.meta = r; prepRun(d); runs[r.id] = d; loaded.push(r.id);
-    } catch (e) { /* missing run file: skip */ }
-  }
-  return loaded;
+async function runList() {
+  try {
+    const res = await fetch(params.get('manifest') || 'runs.json');
+    if (res.ok) { const m = await res.json(); const list = Array.isArray(m) ? m : m.runs; if (Array.isArray(list) && list.length) return list; }
+  } catch (e) { /* no manifest: use the built-in list */ }
+  return BUILTIN_RUNS;
+}
+// Runs are listed at start (a cheap HEAD request per file, so missing files never appear) but each
+// recording (a few MB) is downloaded only when it is first shown.
+const catalog = {};                                             // id -> manifest entry, for files that exist
+async function loadCatalog() {
+  const list = await runList();
+  const ok = await Promise.all(list.map(async r => {
+    try { const res = await fetch(r.file, { method: 'HEAD' }); return res.ok || res.status === 405 || res.status === 501; }
+    catch (e) { return false; }
+  }));
+  const avail = [];
+  list.forEach((r, i) => { if (ok[i] && !catalog[r.id]) { catalog[r.id] = r; avail.push(r.id); } });
+  return avail;
+}
+function loadRun(id) {
+  const r = catalog[id]; if (!r) return Promise.resolve(null);
+  if (!r.promise) r.promise = (async () => {
+    try { const res = await fetch(r.file); if (!res.ok) throw new Error(res.status);
+      const d = await res.json(); d.meta = r; prepRun(d); runs[id] = d; return d; }
+    catch (e) { console.warn(`Traffic Twin: could not load ${r.file} (${e.message})`);
+      document.querySelectorAll(`option[value="${id}"]`).forEach(o => { o.disabled = true; o.textContent += ' (missing)'; }); return null; }
+  })();
+  return r.promise;
 }
 function prepRun(d) {
   d.index = d.frames.map(f => { const m = new Map(); f.v.forEach((v, i) => m.set(v[0], i)); return m; });
@@ -656,6 +694,9 @@ function prepRun(d) {
   d.maxMsg = Math.max(1e-6, ...d.frames.flatMap(f => f.msg || [0]));
   d.maxHalted = Math.max(...d.frames.map(f => f.halted));
   d.arrived0 = d.frames[0].arrived;
+  // sensor-failure runs: "blind" is the MARL_BLIND spec used when recording, e.g. "B1" or "B1:2"
+  d.failed = new Map();
+  for (const e of String(d.blind || '').split(',').filter(Boolean)) { const [tl, k] = e.split(':'); d.failed.set(tl, (d.failed.get(tl) || 0) + (k === undefined ? 4 : 1)); }
 }
 
 // ---------------------------------------------------------------- per-frame update
@@ -756,6 +797,8 @@ function applyRun(run, simT) {
     }
   });
   pulseMesh.count = p; pulseMesh.instanceMatrix.needsUpdate = true; if (p) pulseMesh.instanceColor.needsUpdate = true;
+  for (const t of TL) { const on = run.failed.has(t.id); t.failSprite.visible = t.failRing.visible = on;
+    if (on) t.failRing.material.opacity = 0.55 + 0.35 * Math.sin(perfNow * 5); }
   return { frame: fr, i };
 }
 
@@ -828,6 +871,8 @@ function setStats(run, fr) {
   $('#sQ').innerHTML = `${qm}<small> at ${run.tls[qi]}</small>`;
   $('#clock').textContent = `min ${fmt(fr.t)} / ${fmt(run.start + run.duration)}`;
   $('#sceneLine').textContent = `${SCEN[run.scenario] || run.scenario} · evaluation seed ${run.seed}` + (run.min_green ? ` · ${run.min_green} s minimum green` : '');
+  const fl = $('#failLine'); fl.hidden = !run.failed.size;
+  if (run.failed.size) fl.textContent = `Sensor failure at junction ${[...run.failed.keys()].join(', ')}` + (run.failsafe ? ' · fixed-time fallback on' : ' · no fallback');
 }
 const spark = $('#spark'), sg = spark.getContext('2d');
 function drawSpark() {
@@ -840,31 +885,86 @@ function drawSpark() {
   for (const r of list) {
     sg.strokeStyle = r.meta.color; sg.lineWidth = r.meta.id === curRun ? 3 : 1.6; sg.globalAlpha = r.meta.id === curRun ? 1 : 0.75; sg.beginPath();
     r.frames.forEach((fr, i) => { const x = i / (r.frames.length - 1) * w, y = h - fr.halted / maxH * h; i ? sg.lineTo(x, y) : sg.moveTo(x, y); }); sg.stroke();
-    leg.push(`<span><b style="background:${r.meta.color}"></b>${r.meta.name.split(' ·')[0]}</span>`);
+    leg.push(`<span><b style="background:${r.meta.color}"></b>${r.meta.short || r.meta.name.split(' ·')[0]}</span>`);
   }
   sg.globalAlpha = 1;
   const x = simT / (runs[curRun].frames.length - 1) * w; sg.strokeStyle = '#fff'; sg.lineWidth = 2; sg.beginPath(); sg.moveTo(x, 0); sg.lineTo(x, h); sg.stroke();
   $('#legend').innerHTML = leg.join('') + '<span style="margin-left:auto">vehicles waiting</span>';
 }
-function bindUI(loaded) {
+// Controls shared by the buttons, the URL parameters and the embedding API (window.viewer / postMessage).
+const SPEEDS = [1, 2, 5, 10];
+async function setRun(id) { if (!(await loadRun(id))) { $('#runSel').value = curRun; return false; } curRun = id; $('#runSel').value = id; if (camMode === 'follow') followVid = pickBus(); drawSpark(); return true; }
+async function setCompare(id) {                                  // id = second controller, or null to leave split view
+  if (id && !(await loadRun(id))) { $('#runSel2').value = run2; return false; }
+  const on = !!id;
+  if (on) { run2 = id; $('#runSel2').value = id; }
+  if (on === split) { drawSpark(); return on; }
+  split = on; $('#splitBtn').setAttribute('aria-pressed', split); $('#runSel2').hidden = !split; $('#split-labels').hidden = !split; $('#divider').hidden = !split;
+  if (split && !composerL) { composerL = makeComposer(Math.floor(innerWidth / 2), innerHeight); composerR = makeComposer(Math.ceil(innerWidth / 2), innerHeight); }
+  camera.aspect = (split ? innerWidth / 2 : innerWidth) / innerHeight; camera.updateProjectionMatrix(); drawSpark(); return on;
+}
+function setPlaying(on) { playing = !!on; $('#play').textContent = playing ? '❚❚' : '▶'; }
+function setSpeed(x) { x = +x; if (!(x > 0 && x <= 60)) return false; speed = x; document.querySelectorAll('[data-speed]').forEach(b => b.setAttribute('aria-pressed', +b.dataset.speed === x)); return true; }
+function seek(sec) { const n = runs[curRun].frames.length - 1; simT = Math.min(Math.max(+sec || 0, 0), n); }
+function setOverlay(k, on) { if (!(k in OV)) return false; OV[k] = !!on; document.querySelector(`[data-ov="${k}"]`).setAttribute('aria-pressed', OV[k]); labelGroup.visible = OV.labels; return true; }
+function setQuality(q) { if (q !== 'high' && q !== 'fast') return false; quality = q; document.querySelectorAll('[data-q]').forEach(x => x.setAttribute('aria-pressed', x.dataset.q === q));
+  renderer.shadowMap.enabled = quality === 'high'; renderer.setPixelRatio(quality === 'high' ? Math.min(devicePixelRatio, 2) : 1); scene.traverse(o => { if (o.material) o.material.needsUpdate = true; }); resize(); return true; }
+
+async function bindUI(avail, initial) {
   const sel = $('#runSel'), sel2 = $('#runSel2');
-  for (const id of loaded) { for (const s of [sel, sel2]) { const o = document.createElement('option'); o.value = id; o.textContent = runs[id].meta.name; s.appendChild(o); } }
-  curRun = loaded[0]; run2 = loaded.find(x => x !== curRun) || curRun; sel.value = curRun; sel2.value = run2;
-  sel.onchange = () => { curRun = sel.value; drawSpark(); };
-  sel2.onchange = () => { run2 = sel2.value; drawSpark(); };
-  $('#play').onclick = () => { playing = !playing; $('#play').textContent = playing ? '❚❚' : '▶'; };
-  document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => { speed = +b.dataset.speed; document.querySelectorAll('[data-speed]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+  for (const id of avail) { for (const s of [sel, sel2]) { const o = document.createElement('option'); o.value = id; o.textContent = catalog[id].name; s.appendChild(o); } }
+  curRun = initial; run2 = avail.find(x => x !== curRun) || curRun; sel.value = curRun; sel2.value = run2;
+  sel.onchange = () => setRun(sel.value);
+  sel2.onchange = () => setCompare(sel2.value);
+  $('#play').onclick = () => setPlaying(!playing);
+  document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => setSpeed(b.dataset.speed));
   document.querySelectorAll('[data-cam]').forEach(b => b.onclick = () => setCam(b.dataset.cam));
-  document.querySelectorAll('[data-ov]').forEach(b => b.onclick = () => { const k = b.dataset.ov; OV[k] = !OV[k]; b.setAttribute('aria-pressed', OV[k]); labelGroup.visible = OV.labels; });
-  document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { quality = b.dataset.q; document.querySelectorAll('[data-q]').forEach(x => x.setAttribute('aria-pressed', x === b));
-    renderer.shadowMap.enabled = quality === 'high'; renderer.setPixelRatio(quality === 'high' ? Math.min(devicePixelRatio, 2) : 1); scene.traverse(o => { if (o.material) o.material.needsUpdate = true; }); resize(); });
+  document.querySelectorAll('[data-ov]').forEach(b => b.onclick = () => setOverlay(b.dataset.ov, !OV[b.dataset.ov]));
+  document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => setQuality(b.dataset.q));
   $('#scrub').oninput = e => { simT = e.target.value / 1000 * (runs[curRun].frames.length - 1); };
-  $('#splitBtn').onclick = () => { split = !split; $('#splitBtn').setAttribute('aria-pressed', split); sel2.hidden = !split; $('#split-labels').hidden = !split; $('#divider').hidden = !split;
-    if (split && !composerL) { composerL = makeComposer(Math.floor(innerWidth / 2), innerHeight); composerR = makeComposer(Math.ceil(innerWidth / 2), innerHeight); }
-    camera.aspect = (split ? innerWidth / 2 : innerWidth) / innerHeight; camera.updateProjectionMatrix(); drawSpark(); };
-  if (runs.E1_dev && loaded.length === 1) { $('#note').hidden = false; $('#note').textContent = 'Placeholder data: replace with the trained E1 run.'; }
+  $('#splitBtn').onclick = () => setCompare(split ? null : run2);
+  if (catalog.E1_dev && avail.length === 1) { $('#note').hidden = false; $('#note').textContent = 'Placeholder data: replace with the trained E1 run.'; }
+  await applyParams();
   drawSpark();
 }
+
+// URL parameters, e.g. index.html?run=E1&vs=fixed&cam=aerial&speed=5&t=120&ov=flow,queues&ui=0
+//   run, vs      controller ids (as in runs.json); vs opens the side-by-side view
+//   cam          cinematic | skyline | aerial | junction | street | follow
+//   speed        simulated seconds per real second (default 2)
+//   t            start position in seconds from the start of the recording
+//   paused=1     start paused       ov=a,b    only these overlays on (rings, flow, queues, msgs, labels; ov=none for none)
+//   q=fast       low-power quality  ui=0      hide all panels    dock=0    hide only the playback bar
+async function applyParams() {
+  const bad = [];
+  if (params.has('run') && !(await setRun(params.get('run')))) bad.push(`run=${params.get('run')}`);
+  if (params.has('vs') && !(await setCompare(params.get('vs')))) bad.push(`vs=${params.get('vs')}`);
+  if (params.has('cam')) { const c = params.get('cam'); if (c in CAMS) setCam(c); else bad.push(`cam=${c}`); }
+  if (params.has('speed') && !setSpeed(params.get('speed'))) bad.push(`speed=${params.get('speed')}`);
+  if (params.has('t')) seek(params.get('t'));
+  if (params.get('paused') === '1') setPlaying(false);
+  if (params.has('ov')) { const on = params.get('ov').split(',').filter(Boolean);
+    for (const k of on) if (!(k in OV) && k !== 'none') bad.push(`ov=${k}`);
+    for (const k of Object.keys(OV)) setOverlay(k, on.includes(k)); }
+  if (params.has('q') && !setQuality(params.get('q'))) bad.push(`q=${params.get('q')}`);
+  if (bad.length) console.warn('Traffic Twin: ignored unknown URL parameter value(s): ' + bad.join(', ') + '. Available runs: ' + Object.keys(catalog).join(', '));
+}
+
+// Embedding API. Same page:  window.viewer.setRun('B1').  From a parent page (iframe):
+//   iframe.contentWindow.postMessage({ viewer: 'setRun', args: ['B1'] }, '*')
+// The page posts { viewerReady: true, runs: [...] } to its parent once it is ready.
+window.viewer = {
+  setRun, setCompare, setCam: m => (m in CAMS ? (setCam(m), true) : false), play: () => setPlaying(true), pause: () => setPlaying(false),
+  seek, setSpeed, setOverlay, setQuality,
+  state: () => ({ run: curRun, compare: split ? run2 : null, cam: camMode, playing, speed, t: simT, overlays: { ...OV }, quality }),
+  runs: () => Object.keys(catalog).map(id => { const r = runs[id];
+    return { id, name: catalog[id].name, loaded: !!r, ...(r ? { scenario: r.scenario, seed: r.seed, blind: r.blind || '', failsafe: !!r.failsafe } : {}) }; }),
+};
+addEventListener('message', async e => {
+  const d = e.data; if (!d || typeof d.viewer !== 'string' || !(d.viewer in window.viewer) || !runs[curRun]) return;
+  const result = await window.viewer[d.viewer](...(Array.isArray(d.args) ? d.args : []));
+  if (e.source && d.id !== undefined) e.source.postMessage({ viewerReply: d.id, result }, '*');
+});
 function renderHalf(composerX, x, w, run) {
   applyRun(run, simT);
   renderer.setViewport(x, 0, w, innerHeight); renderer.setScissor(x, 0, w, innerHeight); renderer.setScissorTest(true);
@@ -907,11 +1007,21 @@ window.renderAt = (t, wall, cam) => {
 (async () => {
   try {
     await buildCity();
-    const loaded = await loadRuns();
-    if (!loaded.length) { loadMsg('No recorded runs found next to this page.'); return; }
-    bindUI(loaded);
+    loadMsg('looking for recorded runs');
+    const avail = await loadCatalog();
+    if (!avail.length) { loadMsg('No recorded runs found next to this page.'); return; }
+    const want = params.get('run');
+    let initial = null;
+    for (const id of [...(catalog[want] ? [want] : []), ...avail.filter(x => x !== want)]) {
+      loadMsg('loading ' + catalog[id].name);
+      if (await loadRun(id)) { initial = id; break; }
+    }
+    if (!initial) { loadMsg('Could not load any recorded run.'); return; }
+    if (params.has('vs')) { loadMsg('loading ' + (catalog[params.get('vs')]?.name || params.get('vs'))); await loadRun(params.get('vs')); }
+    await bindUI(avail, initial);
     $('#loading').hidden = true;
     window.__ready = true;
+    if (parent !== window) parent.postMessage({ viewerReady: true, runs: window.viewer.runs() }, '*');
     requestAnimationFrame(frame);
   } catch (e) { loadMsg('Could not start: ' + e.message); console.error(e); }
 })();

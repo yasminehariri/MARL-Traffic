@@ -61,6 +61,13 @@ p.add_argument("--failsafe", action="store_true",
                help="with --blind: every light with a failed detector runs the tuned fixed-time cycle "
                     "(--green s greens) instead of its agent, the usual fallback of real signals when a "
                     "detector fault is flagged. All other lights keep their agents.")
+p.add_argument("--ablate-messages", action="store_true",
+               help="E1 only: every message an agent receives is replaced by the average E1 message "
+                    "(the same constant as the message-ablation check), so messages carry no information. "
+                    "Combine with --blind to see whether E1's messages are what protects it.")
+p.add_argument("--messages-npz", default=None,
+               help="messages_4x4.npz the average message is taken from "
+                    "(default: results/mg5/e1_messages_4x4_mg5/messages_4x4.npz in the repo)")
 p.add_argument("--grid", default="4x4", choices=["4x4", "2x2"],
                help="grid to evaluate ON (a 2x2-trained E1 can be evaluated on 4x4 for RQ3)")
 args = p.parse_args()
@@ -76,6 +83,12 @@ if args.blind:
     os.environ["MARL_BLIND"] = args.blind  # read by env/traci_env.py when it is imported below
     print(f"Sensor failure: queue detectors OFF at {args.blind}", flush=True)
 FAILED_LIGHTS = sorted({e.partition(":")[0] for e in args.blind.split(",") if e})
+if args.ablate_messages:
+    if args.cond != "E1":
+        sys.exit("--ablate-messages only applies to E1 (the learned-communication controller)")
+    if not args.out:
+        sys.exit("--ablate-messages needs an explicit --out, so ablated rows never mix with normal results")
+    print("Message ablation: every received E1 message is replaced by the average message", flush=True)
 if args.failsafe:
     if not args.blind:
         sys.exit("--failsafe needs --blind (it decides what the lights with failed detectors do)")
@@ -112,7 +125,8 @@ sys.path.insert(0, REPO)
 TRIPINFO_ENV = f"{REPO}/configs/tripinfo.xml"  # written by both sumocfg files
 FIELDS = ["label", "cond", "scenario", "seed", "generated", "entered", "finished",
           "wait_finished", "true_delay", "mean_travel_time", "teleports", "explore", "ckpt", "time",
-          "min_green", "switches_per_light_h", "grid"] + (["blind", "failsafe"] if args.blind else [])
+          "min_green", "switches_per_light_h", "grid"] + (["blind", "failsafe"] if args.blind else []) \
+         + (["ablate_messages"] if args.ablate_messages else [])
 
 
 def metrics(tripinfo, route):
@@ -148,10 +162,11 @@ def done_rows():
         if file_mg and file_mg != {MIN_GREEN}:
             sys.exit(f"{args.out} holds rows with min_green {sorted(file_mg)}, this run uses {MIN_GREEN}. "
                      f"Use a different --out so the two rule sets never mix.")
-    file_blind = {(r.get("blind") or "", int(r.get("failsafe") or 0)) for r in rows}
-    if rows and file_blind != {(args.blind, int(args.failsafe))}:
-        sys.exit(f"{args.out} holds rows with sensor failure / fail-safe {sorted(file_blind)}, this run uses "
-                 f"{(args.blind or 'none', int(args.failsafe))}. Use a different --out.")
+    file_kind = {(r.get("blind") or "", int(r.get("failsafe") or 0), int(r.get("ablate_messages") or 0)) for r in rows}
+    run_kind = (args.blind, int(args.failsafe), int(args.ablate_messages))
+    if rows and file_kind != {run_kind}:
+        sys.exit(f"{args.out} holds rows of another kind (sensor failure, fail-safe, message ablation) "
+                 f"{sorted(file_kind)}; this run is {run_kind}. Use a different --out.")
     return {(r["label"], r["scenario"], int(r["seed"])) for r in rows}
 
 
@@ -234,6 +249,23 @@ def build_trained():
     torch.set_num_threads(1)
     algo.restore(args.ckpt)
     print(f"Restored {args.cond} from {args.ckpt}", flush=True)
+    if args.ablate_messages:
+        import numpy as np
+        npz = args.messages_npz or os.path.join(REPO, "results", "mg5", "e1_messages_4x4_mg5", "messages_4x4.npz")
+        mean_msg = torch.from_numpy(np.load(npz)["msg"].mean(0)).float()
+
+        class ConstMsg(torch.nn.Module):
+            """Replaces the E1 message encoder: every neighbour 'sends' the same average message."""
+            def __init__(self, c):
+                super().__init__()
+                self.register_buffer("c", c)
+
+            def forward(self, x):
+                return self.c.to(x.device).unsqueeze(0).expand(x.shape[0], -1)
+
+        model = algo.get_policy("shared_policy").model
+        model.encoder = ConstMsg(mean_msg).to(next(model.parameters()).device)
+        print(f"Average message from {npz}: {[round(float(v), 3) for v in mean_msg]}", flush=True)
     choose = lambda obs, t: {aid: algo.compute_single_action(o, policy_id="shared_policy", explore=args.explore)
                              for aid, o in obs.items()}
     if args.failsafe:
@@ -282,6 +314,8 @@ def main():
                    time=time.strftime("%Y-%m-%d %H:%M:%S"), min_green=MIN_GREEN, grid=args.grid, **m)
         if args.blind:
             row["blind"], row["failsafe"] = args.blind, int(args.failsafe)
+        if args.ablate_messages:
+            row["ablate_messages"] = 1
         write_row(row)
         print(f"{LABEL:8s} {sc:8s} seed{s}: entered {m['entered']}/{m['generated']} | finished {m['finished']} | "
               f"true delay {m['true_delay']:7.2f}s | wait(fin) {m['wait_finished']:7.2f}s | "

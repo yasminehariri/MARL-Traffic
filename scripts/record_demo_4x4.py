@@ -11,7 +11,10 @@ Colab (one per runtime, after !git pull). Examples:
     !python scripts/record_demo_4x4.py --net-only
     !python scripts/record_demo_4x4.py --cond E1 --ckpt /content/drive/MyDrive/MARL_checkpoints/4x4/E1_local_mg5/checkpoints/ckpt_000977
     !python scripts/record_demo_4x4.py --cond fixed
+    !python scripts/record_demo_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1               # sensor failure
+    !python scripts/record_demo_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1 --failsafe    # ... with fallback
 Defaults: peak scenario, evaluation seed 0, window 900-1500 s (the middle of the rush hour).
+--blind and --failsafe work exactly as in evaluate_4x4.py (same environment code, same fallback cycle).
 Output: /content/drive/MyDrive/MARL_results/demo/run_<label>.json  (a few MB)
 """
 
@@ -41,7 +44,26 @@ p.add_argument("--explore", action="store_true")
 p.add_argument("--repo", default=REPO)
 p.add_argument("--out", default=None)
 p.add_argument("--net-out", default=None)
+p.add_argument("--blind", default="",
+               help="sensor failure, as in evaluate_4x4.py: 'B1' = all 4 queue detectors of light B1 read 0. "
+                    "Trained conditions only")
+p.add_argument("--failsafe", action="store_true",
+               help="with --blind: the lights with failed detectors run the tuned fixed-time cycle "
+                    "(--green s greens) instead of their agent, as in evaluate_4x4.py")
 args = p.parse_args()
+if args.blind:
+    if args.cond not in ("B1", "B2", "E1"):
+        sys.exit("--blind only makes sense for trained controllers (fixed, tuned and random use no sensors)")
+    os.environ["MARL_BLIND"] = args.blind  # read by env/traci_env.py when it is imported below
+    print(f"Sensor failure: queue detectors OFF at {args.blind}", flush=True)
+else:
+    os.environ.pop("MARL_BLIND", None)     # a normal recording must never inherit a failure from the shell
+FAILED_LIGHTS = sorted({e.partition(":")[0] for e in args.blind.split(",") if e})
+if args.failsafe:
+    if not args.blind:
+        sys.exit("--failsafe needs --blind (it decides what the lights with failed detectors do)")
+    print(f"Fail-safe: {','.join(FAILED_LIGHTS)} run fixed-time ({args.green} s greens) instead of their agent",
+          flush=True)
 REPO = args.repo
 NET = f"{REPO}/configs/mygrid4x4.net.xml"
 os.environ["MARL_NET_FILE"] = NET
@@ -106,7 +128,8 @@ elif args.cond == "fixed":
 else:
     MG = 5 if args.min_green is None else args.min_green
 set_min_green(MG)
-LABEL = args.label or (args.cond + ("_explore" if args.explore else ""))
+LABEL = args.label or (args.cond + ("_blind" if args.blind else "") + ("_failsafe" if args.failsafe else "")
+                        + ("_explore" if args.explore else ""))
 OUT = args.out or f"/content/drive/MyDrive/MARL_results/demo/run_{LABEL}.json"
 ROUTE = f"{REPO}/configs/routes_4x4_{args.scenario}_seed{args.seed}.rou.xml"
 END = args.start + args.duration
@@ -189,7 +212,17 @@ else:
         model = algo.get_policy("shared_policy").model if args.cond == "E1" else None
         choose = lambda obs, t: {a: algo.compute_single_action(o, policy_id="shared_policy", explore=args.explore)
                                  for a, o in obs.items()}
+        if args.failsafe:
+            # identical to evaluate_4x4.py: the agents still choose for every light, then the failed
+            # lights' choices are replaced by the tuned cycle
+            period = args.green + 3  # green + 3 s yellow inserted by the env, as for --cond tuned
+            agent_choose = choose
+            choose = lambda obs, t: {aid: ((t // period) % 4 if aid in FAILED_LIGHTS else a)
+                                     for aid, a in agent_choose(obs, t).items()}
     env = Env({"route_file": ROUTE})
+    if args.blind:
+        import env.traci_env as te
+        assert te.FAILED and set(te.FAILED) == set(FAILED_LIGHTS), "sensor failure was not applied"
     obs, _ = env.reset()
 
 tl_ids = sorted(traci.trafficlight.getIDList())
@@ -222,6 +255,7 @@ except Exception:
 
 data = {"label": LABEL, "cond": args.cond, "scenario": args.scenario, "seed": args.seed, "min_green": MG,
         "explore": bool(args.explore), "start": args.start, "duration": args.duration, "tls": tl_ids,
+        "blind": args.blind, "failsafe": bool(args.failsafe),
         "types": TYPES, "frames": frames}
 os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
 with open(OUT, "w") as f:

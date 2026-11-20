@@ -1,58 +1,139 @@
 # 3D demo: Traffic Twin 4x4
 
-A 3D replay of real SUMO simulations driven by our trained agents. The page draws only what was recorded: every car position, every light phase, every queue and every E1 message comes from the simulation. Nothing is simulated in the browser.
+This is a 3D replay of real SUMO simulations driven by our trained agents. The page draws only what was recorded: every car position, light phase, queue and E1 message comes from the simulation. Nothing is simulated in the browser.
 
 ## What is in this folder
 
 | File | What it is |
 |---|---|
-| `index.html` | The 3D viewer (three.js). |
-| `net_4x4.json` | The road network, exported from `configs/` by `record_demo_4x4.py --net-only`. |
-| `run_<id>.json` | One recorded run per controller (you create these, step 1). |
+| `index.html` | The 3D viewer (three.js) |
+| `vendor/three/` | three.js 0.160.0 (MIT licence) and the 12 add-on files the viewer uses, so the page works with no internet |
+| `net_4x4.json` | The road network, exported from `configs/` by `record_demo_4x4.py --net-only` |
+| `runs.json` | The list of recordings the viewer offers (id, file, name, colour, group). Files that do not exist yet are skipped |
+| `run_<id>.json` | One recorded simulation each: a 10-minute window, every second |
 
-## Step 1: record the runs (Colab, about 10 minutes each)
+## The recordings
 
-Each command runs one full SUMO episode (peak scenario, seed 0, same traffic for every controller) and saves seconds 900 to 1500 to `MARL_results/demo/run_<id>.json` on your Drive.
+All recordings use evaluation seed 0, so every controller faces exactly the same cars. Each command plays one SUMO episode, saves the window, and takes 2 to 10 minutes on a CPU.
 
+| Group | Recording | Scenario, window | Status |
+|---|---|---|---|
+| normal | `E1`, `fixed`, `tuned`, `B2` | peak, 900 to 1500 s | done |
+| normal | `B1` | peak, 900 to 1500 s | **Hanin** |
+| surge | `E1_surge`, `fixed_surge` | surge, 1500 to 2100 s (inside the 3x demand period) | done |
+| surge | `B1_surge` | surge, 1500 to 2100 s | **Hanin** |
+| failure | `E1_blind`, `E1_blind_failsafe`, `B2_blind` | peak, 900 to 1500 s, junction B1's detectors broken | done |
+| failure | `B1_blind`, `B1_blind_failsafe` | peak, 900 to 1500 s | **Hanin** |
+
+Hanin's four commands (Colab, after `%cd /content/MARL-Traffic` and `!git pull`; CPU is fine; they use her B1 checkpoint):
 ```
-!python scripts/record_demo_4x4.py --cond E1 --ckpt /content/drive/MyDrive/MARL_checkpoints/4x4/E1_local_mg5/checkpoints/ckpt_000977
 !python scripts/record_demo_4x4.py --cond B1 --ckpt /content/drive/MyDrive/MARL_checkpoints/4x4/B1_local_mg5/checkpoints/ckpt_000977
+!python scripts/record_demo_4x4.py --cond B1 --ckpt /content/drive/MyDrive/MARL_checkpoints/4x4/B1_local_mg5/checkpoints/ckpt_000977 --scenario surge --start 1500 --label B1_surge
+!python scripts/record_demo_4x4.py --cond B1 --ckpt /content/drive/MyDrive/MARL_checkpoints/4x4/B1_local_mg5/checkpoints/ckpt_000977 --blind B1
+!python scripts/record_demo_4x4.py --cond B1 --ckpt /content/drive/MyDrive/MARL_checkpoints/4x4/B1_local_mg5/checkpoints/ckpt_000977 --blind B1 --failsafe
 ```
+They save `run_B1.json`, `run_B1_surge.json`, `run_B1_blind.json` and `run_B1_blind_failsafe.json` to `MARL_results/demo/` on her Drive. Each one ends with a line `Saved ... (x MB): 601 s, ...`. Copy the four files into this `demo/` folder and push.
 
-`run_fixed.json` and `run_tuned.json` are already in this folder, recorded with the same script, so only E1 (and optionally B1) need recording. With `run_E1.json` added, you can show E1 alone or side by side with fixed-time. Download the files from `MARL_results/demo/` and put them in this `demo/` folder.
+The commands for the recordings marked done are below (rerunning them gives the same frames, second by second: we checked this for `run_E1.json`, recorded once on Colab and once on another machine):
+```
+# E1=<E1 checkpoint>, B2=<B2 checkpoint> (bash variables)
+python scripts/record_demo_4x4.py --cond E1 --ckpt $E1
+python scripts/record_demo_4x4.py --cond B2 --ckpt $B2
+python scripts/record_demo_4x4.py --cond fixed
+python scripts/record_demo_4x4.py --cond tuned
+python scripts/record_demo_4x4.py --cond E1 --ckpt $E1 --scenario surge --start 1500 --label E1_surge
+python scripts/record_demo_4x4.py --cond fixed --scenario surge --start 1500 --label fixed_surge
+python scripts/record_demo_4x4.py --cond E1 --ckpt $E1 --blind B1
+python scripts/record_demo_4x4.py --cond E1 --ckpt $E1 --blind B1 --failsafe
+python scripts/record_demo_4x4.py --cond B2 --ckpt $B2 --blind B1
+```
+`--blind` and `--failsafe` do exactly what they do in `evaluate_4x4.py`: the same environment code and the same fallback cycle. A recording made with `--blind` stores `"blind": "B1"`, and the viewer then marks junction B1 in red ("SENSORS OFF") and shows the failure line under the scenario name.
 
-The B1 checkpoint is on the Drive of whoever trained B1, so run the B1 command from that account.
+A recording is a 10-minute window. The delay numbers in the report and on the website are for whole one-hour episodes over 10 seeds, so the replay illustrates a result; it is not the result itself.
 
-## Step 2: open the demo on your laptop
+## Open the viewer on your laptop
 
 Browsers block a page opened by double-click from reading its JSON files, so serve the folder:
-
 ```
 cd demo
 python -m http.server 8000
 ```
+Then open http://localhost:8000. Stop the server with Ctrl+C.
 
-Then open http://localhost:8000 in Chrome or Edge. Stop the server with Ctrl+C.
+Controls: controller menu, **Side by side** for a comparison, camera buttons (fly-over, skyline, aerial, junction, street, follow a bus), overlays (detection rings, green flow, queue halos, agent messages, light IDs), playback speed and the time slider.
 
-Controls: choose the controller, **Split** for a side-by-side comparison, camera buttons (fly-over, skyline, aerial, junction, street, follow a car), overlays (detection rings, green flow, queue halos, agent messages, light IDs), playback speed and the time slider.
+## URL parameters (for links and for embedding in the website)
 
-## Step 3: make a video (optional)
+`index.html?run=E1&vs=fixed&cam=aerial&speed=5&t=120&ov=flow,queues&paused=1`
+
+| Parameter | Values | Default |
+|---|---|---|
+| `run` | a recording id from `runs.json` | the first that exists |
+| `vs` | a second id; opens the side-by-side view | off |
+| `cam` | `cinematic`, `skyline`, `aerial`, `junction`, `street`, `follow` | `cinematic` |
+| `speed` | simulated seconds per real second (above 0, up to 60) | `2` |
+| `t` | start position in seconds from the start of the recording (0 to 600) | `0` |
+| `paused=1` | start paused | playing |
+| `ov` | the overlays to turn on, comma-separated: `rings`, `flow`, `queues`, `msgs`, `labels`, or `none` | rings, flow, queues, msgs |
+| `q=fast` | lower quality for weak laptops and phones | `high` |
+| `ui=0` | hide every panel (a clean picture for embedding) | shown |
+| `dock=0` | hide only the playback bar | shown |
+| `manifest` | another list file instead of `runs.json` | `runs.json` |
+
+An unknown value is ignored and a warning is printed in the browser console.
+
+Only the recordings on screen are downloaded (3 to 8 MB each). The others are fetched when they are chosen.
+
+## Embedding API
+
+In the same page: `window.viewer.setRun('B1')`, `setCompare('fixed')` (or `null` to close the split), `setCam('aerial')`, `play()`, `pause()`, `seek(120)`, `setSpeed(5)`, `setOverlay('msgs', true)`, `setQuality('fast')`, `state()` and `runs()`. `setRun` and `setCompare` return a promise that resolves to `true` or `false`.
+
+From a parent page that shows the viewer in an `<iframe>`:
+```js
+frame.contentWindow.postMessage({ viewer: 'setRun', args: ['E1_blind'], id: 1 }, '*');
+addEventListener('message', e => {
+  if (e.data.viewerReady) { /* viewer loaded; e.data.runs lists the recordings */ }
+  if (e.data.viewerReply === 1) { /* e.data.result is the return value */ }
+});
+```
+
+## Check that it works
+
+```
+pip install playwright && python -m playwright install chromium
+python tests/test_viewer.py
+```
+This opens the viewer in a hidden browser with the internet blocked. It checks:
+- no errors;
+- nothing downloaded from outside the folder;
+- lazy loading;
+- every URL parameter;
+- a bad parameter;
+- the failure marker;
+- the postMessage API;
+- the fallback without `runs.json`.
+
+It saves screenshots to `tests/viewer_screens/`.
+
+## Make a video (optional)
 
 ```
 pip install playwright imageio-ffmpeg
 python -m playwright install chromium
 python scripts/render_demo_video.py --run E1 --out demo_E1.mp4
 python scripts/render_demo_video.py --run E1 --vs fixed --cam aerial --out demo_E1_vs_fixed.mp4
+python scripts/render_demo_video.py --run E1_blind --vs E1_blind_failsafe --cam aerial --out demo_failure.mp4
 ```
+Run these from the repo root. The script opens the page in an invisible browser and draws every frame exactly (`window.renderAt`). It takes a screenshot of each frame and joins them into an MP4 with ffmpeg.
 
-Run these from the repo root. The script opens the page in an invisible browser, draws every frame exactly (`window.renderAt`), takes a screenshot of each, and joins them into an MP4 with ffmpeg. Useful options:
-- `--seconds 40` (video length)
-- `--sim-speed 8` (simulated seconds per video second)
-- `--cam` (one of cinematic, skyline, aerial, junction, street, follow)
-- `--show-dock` (keep the playback bar, which is hidden in videos by default)
-- `--width/--height` (default 1920x1080)
+Options:
+- `--seconds 40`: video length.
+- `--sim-speed 8`: simulated seconds per video second.
+- `--cam`: the camera.
+- `--show-dock`: keep the playback bar.
+- `--width` and `--height`: frame size (default 1920x1080).
 
-For a quick test, use `--seconds 5 --width 1280 --height 720`. It works on Colab too, just slower, because there is no GPU there.
+For a quick test, use `--seconds 5 --width 1280 --height 720`.
 
 ## How to describe it
 

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starter Example</title>
+<!-- Reference implementation for the website developer: how to read the data, write a sentence
+     from it, draw two charts with the vendored libraries, give a table view, and embed the 3D viewer.
+     Copy the patterns, not the styling. -->
+<script src="vendor/d3-7.9.0.min.js"></script>
+<script src="vendor/plot-0.6.17.umd.min.js"></script>
+<style>
+  :root { color-scheme: light; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --line: #0b0b0b1f; }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) { color-scheme: dark; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --line: #f0efec26; }
+  }
+  :root[data-theme="dark"] { color-scheme: dark; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --line: #f0efec26; }
+  body { margin: 0 auto; padding: 32px 16px 64px; max-width: 980px; background: var(--surface); color: var(--ink); font: 16px/1.55 system-ui, sans-serif; }
+  h1 { font-size: 26px; margin: 0 0 8px; } h2 { font-size: 19px; margin: 40px 0 6px; }
+  .lead { font-size: 19px; } .muted { color: var(--ink-2); font-size: 14px; }
+  .fig { overflow-x: auto; } .fig svg { max-width: none; }
+  table { border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 14px; }
+  th, td { padding: 4px 12px; border-bottom: 1px solid var(--line); text-align: right; } th:first-child, td:first-child { text-align: left; }
+  .viewer { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 12px; background: #0b1622; }
+  details { margin-top: 8px; }
+</style>
+</head>
+<body>
+<h1>Starter example</h1>
+<p class="muted">Every number on this page is read from <code>data/*.json</code> through <code>js/data.js</code>. None is typed by hand.</p>
+
+<p class="lead" id="headline">…</p>
+
+<h2>Average delay per vehicle, normal traffic</h2>
+<p class="muted">Mean over 10 traffic seeds with 95% confidence interval. Lower is better. Log scale: peak-hour gridlocks reach 10 times the light-traffic delays. Greedy mode for the learned controllers.</p>
+<div class="fig" id="fig1"></div>
+<details><summary>Table view</summary><div class="fig" id="tab1"></div></details>
+
+<h2>Every peak-hour episode</h2>
+<p class="muted">One dot per traffic seed (the same 10 traffic patterns for every controller). Greedy mode.</p>
+<div class="fig" id="fig2"></div>
+
+<h2>3D replay: E1 against fixed-time, peak hour</h2>
+<iframe class="viewer" loading="lazy" title="3D replay of E1 and fixed-time control"
+        src="../demo/index.html?run=E1&vs=fixed&cam=aerial&ui=0&q=fast"></iframe>
+<p class="muted">A 10-minute replay of seed 0 (a real recorded simulation). The numbers above are whole-hour averages over 10 seeds.</p>
+
+<script type="module">
+import { loadData, one, pick, fmt, nameOf, colorOf, ORDER, withBaselines } from './js/data.js';
+const D = await loadData();
+const SURF = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim(); // SVG attributes cannot use var()
+
+// 1. a sentence built from data
+const e1 = one(D.summary, { experiment: 'normal', controller: 'E1', mode: 'greedy', scenario: 'peak' });
+const c = one(D.comparisons, { experiment: 'normal', variant: 'standard', mode: 'greedy', scenario: 'peak', other: 'B1' });
+document.getElementById('headline').textContent =
+  `At peak hour, E1 averages ${fmt.delay(e1.true_delay_mean)} s of delay per vehicle, ${fmt.pct(c.diff_pct)} ${c.diff_pct < 0 ? 'lower' : 'higher'} ` +
+  `than B1 (better on ${c.e1_better_seeds} of ${c.n} traffic seeds, ${fmt.p(c.wilcoxon_p)}).`;
+
+// 2. means with confidence intervals, one panel per scenario
+const rows = pick(D.summary, { experiment: 'normal', variant: 'standard', mode: withBaselines('greedy'), controller: ORDER })
+  .map(r => ({ ...r, label: r.controller, lo: r.true_delay_ci95[0], hi: r.true_delay_ci95[1] }));
+const scen = ['uniform', 'peak', 'asym'];
+const color = { domain: ORDER, range: ORDER.map(colorOf) };
+// one panel per scenario: side by side on wide screens, stacked on phones
+const fig1 = document.getElementById('fig1'), narrow = fig1.clientWidth < 600;
+const F = narrow ? 'fy' : 'fx';
+const yAxis = { type: 'log', domain: [20, 1500], clamp: true, ticks: [20, 50, 100, 200, 500, 1000], tickFormat: d => d, label: 'delay (s per vehicle)', grid: true };
+fig1.append(Plot.plot({
+  width: Math.min(fig1.clientWidth, 940), height: narrow ? 3 * 240 : 340, marginLeft: 56, marginBottom: 40, marginRight: 20,
+  style: { background: 'transparent', color: 'currentColor', fontSize: '12px' },
+  [F]: { domain: scen, label: null, axis: narrow ? null : 'top' }, x: { domain: ORDER, label: null }, color, y: yAxis,
+  marks: [
+    ...(narrow ? [Plot.text(scen, { fy: d => d, text: d => d, frameAnchor: 'top-left', dx: 4, dy: 4, fontWeight: 600, fontSize: 13, fill: 'currentColor' })] : []),
+    Plot.ruleX(rows, { [F]: 'scenario', x: 'label', y1: 'lo', y2: 'hi', stroke: 'controller', strokeWidth: 2 }),
+    Plot.dot(rows, { [F]: 'scenario', x: 'label', y: 'true_delay_mean', fill: 'controller', r: 5, stroke: SURF, strokeWidth: 2 }),
+    Plot.text(rows, { [F]: 'scenario', x: 'label', y: 'true_delay_mean', text: r => fmt.delay(r.true_delay_mean), dx: 9, textAnchor: 'start', fill: 'currentColor', fontSize: 10 }),
+    Plot.tip(rows, Plot.pointer({ [F]: 'scenario', x: 'label', y: 'true_delay_mean',
+      title: r => `${nameOf(D, r.controller)}\n${r.scenario}: ${fmt.delay(r.true_delay_mean)} s (95% CI ${fmt.delay(r.lo)} to ${fmt.delay(r.hi)})\nteleports per episode: ${r.teleports_mean}` })),
+  ],
+}));
+// table view of the same numbers
+const t = document.createElement('table');
+t.innerHTML = `<tr><th>Controller</th>${scen.map(s => `<th>${s}</th>`).join('')}</tr>` + ORDER.map(id =>
+  `<tr><td>${nameOf(D, id)}</td>${scen.map(s => `<td>${fmt.delay(rows.find(r => r.controller === id && r.scenario === s)?.true_delay_mean)}</td>`).join('')}</tr>`).join('');
+document.getElementById('tab1').append(t);
+
+// 3. every episode, peak hour
+const eps = pick(D.episodes, { experiment: 'normal', variant: 'standard', scenario: 'peak', mode: withBaselines('greedy'), controller: ORDER });
+const fig2 = document.getElementById('fig2');
+fig2.append(Plot.plot({
+  width: Math.min(fig2.clientWidth, 940), height: 260, marginLeft: 56, marginBottom: 40, marginRight: 20,
+  style: { background: 'transparent', color: 'currentColor', fontSize: '12px' },
+  y: { domain: ORDER, label: null }, x: { ...yAxis, label: 'delay (s per vehicle)' }, color,
+  marks: [
+    Plot.dot(eps, { x: 'true_delay', y: 'controller', fill: 'controller', r: 5, fillOpacity: 0.85, stroke: SURF, strokeWidth: 1.5,
+      channels: { seed: 'seed', teleports: 'teleports' }, tip: true }),
+  ],
+}));
+window.__exampleReady = true;
+</script>
+</body>
+</html>
