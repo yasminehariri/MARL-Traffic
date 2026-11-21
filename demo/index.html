@@ -121,7 +121,7 @@ body.dock-none #dock { display: none !important; }
     <button data-cam="aerial">Aerial</button>
     <button data-cam="junction">Junction</button>
     <button data-cam="street">Street</button>
-    <button data-cam="follow">Follow bus</button>
+    <button data-cam="follow">Follow vehicle</button>
   </div>
   <div class="row">
     <span class="lbl">Overlays</span>
@@ -390,9 +390,18 @@ const MODELS = {
     tire: partGeo(wheels(2.4, 10, 0.5, [-3.6, 0.6, 3.6])),
     rear: partGeo([[box(0.36, 0.3, 0.05), -1.0, 0.9, 4.97], [box(0.36, 0.3, 0.05), 1.0, 0.9, 4.97]]),
     head: partGeo([[box(0.4, 0.2, 0.05), -0.9, 0.85, -5.02], [box(0.4, 0.2, 0.05), 0.9, 0.85, -5.02]]) },
+  // ambulance (only in runs recorded with --ambulances): white van body, red side stripe, red and blue beacons
+  ambulance: { L: 6.5, W: 2.2, paint: partGeo([[rb(2.2, 2.2, 6.5, 0.22), 0, 1.35, 0]]),
+    glass: partGeo([[box(2.0, 0.75, 0.06), 0, 1.85, -3.24], [box(2.22, 0.6, 1.4), 0, 1.85, -2.35]]),
+    tire: partGeo(wheels(2.2, 6.5, 0.38, [-2.2, 2.1])),
+    stripe: partGeo([[box(2.24, 0.34, 5.9), 0, 1.15, 0.15]]),
+    beaconL: partGeo([[box(0.6, 0.24, 0.34), -0.45, 2.58, -2.35]]),
+    beaconR: partGeo([[box(0.6, 0.24, 0.34), 0.45, 2.58, -2.35]]),
+    rear: partGeo([[box(0.3, 0.3, 0.05), -0.85, 0.9, 3.26], [box(0.3, 0.3, 0.05), 0.85, 0.9, 3.26]]),
+    head: partGeo([[box(0.36, 0.16, 0.05), -0.78, 0.82, -3.26], [box(0.36, 0.16, 0.05), 0.78, 0.82, -3.26]]) },
 };
-const TYPE_KEYS = ['car', 'van', 'bus', 'truck'];
-const CAP = { car: 900, van: 160, bus: 110, truck: 110 };
+const TYPE_KEYS = ['car', 'van', 'bus', 'truck', 'ambulance'];   // same order as the recorder's TYPES
+const CAP = { car: 900, van: 160, bus: 110, truck: 110, ambulance: 16 };
 const paintMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, metalness: 0.25, envMapIntensity: 0.9 });
 const glassMat = new THREE.MeshStandardMaterial({ color: 0x1b2633, roughness: 0.08, metalness: 0.9, envMapIntensity: 1.4 });
 const tireMat = new THREE.MeshStandardMaterial({ color: 0x18191b, roughness: 0.9 });
@@ -410,6 +419,8 @@ for (const k of TYPE_KEYS) {
     im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(im); return im; };
   set.paint = mk(md.paint, paintMat, true); set.glass = mk(md.glass, glassMat, false); set.tire = mk(md.tire, tireMat, false);
   if (md.cargo) set.cargo = mk(md.cargo, cargoMat, false);
+  if (md.stripe) set.stripe = mk(md.stripe, paintMat, true);
+  if (md.beaconL) { set.beaconL = mk(md.beaconL, lampMat, true); set.beaconR = mk(md.beaconR, lampMat, true); set.beaconL.castShadow = set.beaconR.castShadow = false; }
   set.rear = mk(md.rear, lampMat, true); set.rear.castShadow = false;
   set.head = mk(md.head, lampMat, true); set.head.castShadow = false;
   vehMeshes[k] = set;
@@ -654,6 +665,14 @@ async function buildCity() {
     const ring = new THREE.Mesh(new THREE.RingGeometry(18, 23, 64), new THREE.MeshBasicMaterial({ color: 0xff3b3f, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide }));
     ring.rotation.x = -Math.PI / 2; ring.position.copy(t.pos).setY(0.25); ring.visible = false; scene.add(ring); t.failRing = ring;
   }
+  // ambulance-priority tags (shown while a light serves an ambulance, for runs recorded with --preempt)
+  const priTex = canvasTex(256, 96, (g, w, h) => { g.fillStyle = 'rgba(8,24,60,.88)'; g.beginPath(); g.roundRect(4, 6, w - 8, h - 12, 16); g.fill();
+    g.strokeStyle = '#7fb2ff'; g.lineWidth = 4; g.stroke();
+    g.fillStyle = '#ffffff'; g.font = '700 30px JetBrains Mono, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('PRIORITY', w / 2, h / 2 + 1); }, false);
+  for (const t of TL) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: priTex, depthTest: false, transparent: true, sizeAttenuation: false }));
+    s.position.copy(t.pos).setY(30); s.scale.set(0.13, 0.05, 1); s.visible = false; s.renderOrder = 11; scene.add(s); t.priSprite = s;
+  }
 }
 
 // ---------------------------------------------------------------- runs (recorded simulations)
@@ -702,7 +721,7 @@ function prepRun(d) {
 // ---------------------------------------------------------------- per-frame update
 const OV = { rings: true, flow: true, queues: true, msgs: true, labels: false };
 const tmpM = new THREE.Matrix4(), tmpQ = new THREE.Quaternion(), tmpP = new THREE.Vector3(), tmpS = new THREE.Vector3(1, 1, 1), tmpC = new THREE.Color(), up = V(0, 1, 0);
-const colorOf = (vid, type) => { const pal = [CAR_COLORS, VAN_COLORS, BUS_COLORS, TRUCK_COLORS][type]; return pal[(vid * 2654435761 >>> 0) % pal.length]; };
+const colorOf = (vid, type) => { const pal = [CAR_COLORS, VAN_COLORS, BUS_COLORS, TRUCK_COLORS, ['#f7f7f4']][type] || CAR_COLORS; return pal[(vid * 2654435761 >>> 0) % pal.length]; };
 const vehCache = {}; // vid -> { color }
 function laneState(t, lane, phase) {
   const st = t.phases[phase] || ''; let g = false, y = false;
@@ -717,7 +736,7 @@ function applyRun(run, simT) {
   const tt = Math.min(Math.max(simT, 0), n - 1.0001);
   const i = Math.floor(tt), f = tt - i;
   const A = run.frames[i], B = run.frames[Math.min(i + 1, n - 1)], ib = run.index[Math.min(i + 1, n - 1)], ia = run.index[i];
-  const counts = { car: 0, van: 0, bus: 0, truck: 0 };
+  const counts = Object.fromEntries(TYPE_KEYS.map(k => [k, 0]));
   let rings = 0;
   const seen = new Set();
   const place = (va, vb, frac) => {
@@ -737,7 +756,19 @@ function applyRun(run, simT) {
     const braking = vb[5] < va[5] - 4 || (va[5] < 5 && vb[5] < 5);
     set.rear.setColorAt(k, braking ? tmpC.setRGB(6, 0.25, 0.2) : tmpC.setRGB(0.55, 0.05, 0.05));
     set.head.setColorAt(k, tmpC.setRGB(1.6, 1.55, 1.3));
-    if (OV.rings && rings < ringMesh.instanceMatrix.count && (type >= 2 || vid % 9 === 0)) {
+    if (set.beaconL) {               // ambulance: stripe, alternating beacons, and always a red ring so it is easy to find
+      set.stripe.setMatrixAt(k, tmpM); set.stripe.setColorAt(k, tmpC.set('#c8102e'));
+      set.beaconL.setMatrixAt(k, tmpM); set.beaconR.setMatrixAt(k, tmpM);
+      const on = Math.floor(perfNow * 5) % 2 === 0;
+      set.beaconL.setColorAt(k, on ? tmpC.setRGB(8, 0.3, 0.3) : tmpC.setRGB(0.25, 0.02, 0.02));
+      set.beaconR.setColorAt(k, on ? tmpC.setRGB(0.2, 0.5, 0.6) : tmpC.setRGB(0.4, 1.2, 9));
+      if (rings < ringMesh.instanceMatrix.count) {
+        const s = 6.5 * (1 + 0.12 * Math.sin(perfNow * 6));
+        tmpM.compose(tmpP.setY(0.14), tmpQ.identity(), V(s, 1, s)); ringMesh.setMatrixAt(rings, tmpM);
+        ringMesh.setColorAt(rings, tmpC.setRGB(3.2, 0.3, 0.3)); rings++;
+      }
+    }
+    if (OV.rings && rings < ringMesh.instanceMatrix.count && (type >= 2 || vid % 9 === 0) && !set.beaconL) {
       const pulse = 1 + 0.08 * Math.sin(perfNow * 4 + vid);
       const s = (md.L * 0.62 + 1.2) * pulse;
       tmpM.compose(tmpP.setY(0.12), tmpQ.identity(), V(s, 1, s)); ringMesh.setMatrixAt(rings, tmpM);
@@ -751,7 +782,7 @@ function applyRun(run, simT) {
   if (f > 0.5) for (const vb of B.v) if (!seen.has(vb[0])) place(vb, vb, 0);
   for (const key of TYPE_KEYS) { const set = vehMeshes[key];
     for (const m of Object.values(set)) { m.count = counts[key]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; } }
-  ringMesh.count = OV.rings ? rings : 0; ringMesh.instanceMatrix.needsUpdate = true; ringMesh.instanceColor.needsUpdate = true;
+  ringMesh.count = rings; ringMesh.instanceMatrix.needsUpdate = true; ringMesh.instanceColor.needsUpdate = true;   // vehicle rings only when the overlay is on; ambulance rings always
 
   // lights, flow chevrons, queue halos, messages
   const fr = f < 0.5 ? A : B;
@@ -797,6 +828,8 @@ function applyRun(run, simT) {
     }
   });
   pulseMesh.count = p; pulseMesh.instanceMatrix.needsUpdate = true; if (p) pulseMesh.instanceColor.needsUpdate = true;
+  const pri = new Set((fr.pre || []).map(k => run.tlOrder[k]));
+  TL.forEach((t, i) => { t.priSprite.visible = pri.has(i); });
   for (const t of TL) { const on = run.failed.has(t.id); t.failSprite.visible = t.failRing.visible = on;
     if (on) t.failRing.material.opacity = 0.55 + 0.35 * Math.sin(perfNow * 5); }
   return { frame: fr, i };
@@ -821,7 +854,8 @@ function setCam(mode) {
   if (CAMS[mode]) camTween = { t: 0, p0: camera.position.clone(), q0: controls.target.clone(), p1: CAMS[mode].pos, q1: CAMS[mode].tgt };
 }
 function pickBus() { const run = runs[curRun]; if (!run) return null; const fr = run.frames[Math.floor(simT)];
-  const buses = fr.v.filter(v => v[4] === 2); const c = buses.length ? buses : fr.v; return c.length ? c[Math.floor(c.length / 2)][0] : null; }
+  const amb = fr.v.filter(v => v[4] === 4), buses = fr.v.filter(v => v[4] === 2);   // follow an ambulance if there is one
+  const c = amb.length ? amb : buses.length ? buses : fr.v; return c.length ? c[Math.floor(c.length / 2)][0] : null; }
 let orbitA = 0.4;
 function updateCamera(dt) {
   if (camMode === 'cinematic') {
@@ -871,8 +905,9 @@ function setStats(run, fr) {
   $('#sQ').innerHTML = `${qm}<small> at ${run.tls[qi]}</small>`;
   $('#clock').textContent = `min ${fmt(fr.t)} / ${fmt(run.start + run.duration)}`;
   $('#sceneLine').textContent = `${SCEN[run.scenario] || run.scenario} · evaluation seed ${run.seed}` + (run.min_green ? ` · ${run.min_green} s minimum green` : '');
-  const fl = $('#failLine'); fl.hidden = !run.failed.size;
+  const fl = $('#failLine'); fl.hidden = !run.failed.size && !run.ambulances;
   if (run.failed.size) fl.textContent = `Sensor failure at junction ${[...run.failed.keys()].join(', ')}` + (run.failsafe ? ' · fixed-time fallback on' : ' · no fallback');
+  else if (run.ambulances) fl.textContent = `Ambulances on the road · signal priority ${run.preempt ? 'on' : 'off'}`;
 }
 const spark = $('#spark'), sg = spark.getContext('2d');
 function drawSpark() {
@@ -996,7 +1031,10 @@ function frame(now, external = false) {
 }
 
 // deterministic frame rendering for video export (used by the recording script)
-window.__dbg = { camera, controls, CAMS };
+window.__dbg = { camera, controls, CAMS,
+  // test helper: first second of the current run where a light serves an ambulance, with what is drawn then
+  findPri: () => { const run = runs[curRun]; const i = run.frames.findIndex(f => f.pre && f.pre.length); if (i < 0) return null;
+    applyRun(run, i); return { t: i, tags: TL.filter(t => t.priSprite.visible).length, amb: vehMeshes.ambulance.paint.count }; } };
 window.renderAt = (t, wall, cam) => {
   simT = t; perfNow = wall; if (cam) setCam(cam);
   if (runs[curRun]) applyRun(runs[curRun], simT); // refresh the followed vehicle's pose first

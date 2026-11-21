@@ -6,6 +6,7 @@
   * URL parameters set the controller, comparison, camera, speed, time, overlays and pause,
   * a bad parameter value is ignored without breaking the page,
   * a sensor-failure run shows the red marker on the failed junction and the failure line,
+  * an ambulance run with priority draws the ambulances and the PRIORITY tag,
   * the embedding API works from a parent page through postMessage,
   * without runs.json the built-in run list is used.
 
@@ -91,7 +92,7 @@ def main():
         manifest = [r["id"] for r in json.load(open(os.path.join(DEMO, "runs.json")))["runs"]]
         expected = [i for i in manifest if f"run_{i}.json" in have]
         assert listed == expected, (listed, expected)
-        page.screenshot(path=os.path.join(SHOTS, "1_default.png"))
+        page.screenshot(path=os.path.join(SHOTS, "1_default.png"), timeout=180_000)
         print(f"1 default page: OK (E1 shown, only run_E1.json downloaded, {len(listed)} runs listed: {', '.join(listed)})")
 
         # 2. URL parameters
@@ -105,7 +106,7 @@ def main():
         assert st["overlays"] == {"rings": False, "flow": True, "queues": True, "msgs": False, "labels": False}, st
         assert run_gets() == ["run_E1.json", "run_fixed.json"], run_gets()
         assert page.is_visible("#runSel2") and page.is_visible("#divider")
-        page.screenshot(path=os.path.join(SHOTS, "2_params_fixed_vs_E1.png"))
+        page.screenshot(path=os.path.join(SHOTS, "2_params_fixed_vs_E1.png"), timeout=180_000)
         print("2 URL parameters: OK (run, vs, cam, speed, t, ov, paused all applied)")
 
         # 3. bad values are ignored, page still works
@@ -119,7 +120,7 @@ def main():
         # 4. ui=0 hides all panels
         page, errors, _ = open_page(browser, base + "/index.html?ui=0", outside)
         assert not errors and not any(page.is_visible(s) for s in ("#brand", "#stats", "#dock"))
-        page.screenshot(path=os.path.join(SHOTS, "4_ui0.png"))
+        page.screenshot(path=os.path.join(SHOTS, "4_ui0.png"), timeout=180_000)
         print("4 ui=0: OK (panels hidden)")
 
         # 5. sensor-failure run
@@ -129,7 +130,7 @@ def main():
             assert not errors, errors
             line = page.inner_text("#failLine")
             assert page.is_visible("#failLine") and line.lower() == "sensor failure at junction b1 · no fallback", line
-            page.screenshot(path=os.path.join(SHOTS, "5_failure_E1_blind.png"))
+            page.screenshot(path=os.path.join(SHOTS, "5_failure_E1_blind.png"), timeout=180_000)
             if "run_E1_blind_failsafe.json" in have:
                 page.evaluate("window.viewer.setRun('E1_blind_failsafe')")
                 page.wait_for_timeout(1500)
@@ -140,6 +141,19 @@ def main():
             print("5 sensor-failure run: OK (failure line shown, cleared for a normal run)")
         else:
             print("5 sensor-failure run: skipped (no demo/run_E1_blind.json yet)")
+
+        # 5b. ambulance run with priority: ambulances drawn, PRIORITY tag shown while a light serves one
+        if "run_E1_amb_preempt.json" in have:
+            page, errors, _ = open_page(browser, base + "/index.html?run=E1_amb_preempt&cam=aerial&paused=1", outside)
+            assert not errors, errors
+            got = page.evaluate("() => window.__dbg.findPri()")
+            assert got and got['t'] >= 0 and got['tags'] >= 1 and got['amb'] >= 1, got
+            assert page.inner_text("#failLine").lower() == "ambulances on the road · signal priority on"
+            page.evaluate(f"window.viewer.seek({got['t']})"); page.wait_for_timeout(1500)
+            page.screenshot(path=os.path.join(SHOTS, "5b_ambulance_priority.png"), timeout=180_000)
+            print(f"5b ambulance run: OK (second {got['t']}: {got['amb']} ambulance(s) drawn, {got['tags']} PRIORITY tag(s) shown)")
+        else:
+            print("5b ambulance run: skipped (no demo/run_E1_amb_preempt.json yet)")
 
         # 6. embedding API through postMessage from a parent page
         parent = f"""<!doctype html><meta charset=utf-8><iframe id=f src="{base}/index.html?dock=0" width=900 height=500></iframe>

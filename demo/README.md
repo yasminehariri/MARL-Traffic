@@ -19,11 +19,12 @@ All recordings use evaluation seed 0, so every controller faces exactly the same
 | Group | Recording | Scenario, window | Status |
 |---|---|---|---|
 | normal | `E1`, `fixed`, `tuned`, `B2` | peak, 900 to 1500 s | done |
-| normal | `B1` | peak, 900 to 1500 s | **Hanin** |
+| normal | `B1` | peak, 900 to 1500 s | done (Hanin) |
 | surge | `E1_surge`, `fixed_surge` | surge, 1500 to 2100 s (inside the 3x demand period) | done |
-| surge | `B1_surge` | surge, 1500 to 2100 s | **Hanin** |
+| surge | `B1_surge` | surge, 1500 to 2100 s | done (Hanin) |
 | failure | `E1_blind`, `E1_blind_failsafe`, `B2_blind` | peak, 900 to 1500 s, junction B1's detectors broken | done |
-| failure | `B1_blind`, `B1_blind_failsafe` | peak, 900 to 1500 s | **Hanin** |
+| failure | `B1_blind`, `B1_blind_failsafe` | peak, 900 to 1500 s | done (Hanin) |
+| ambulance | `E1_amb`, `E1_amb_preempt` | peak, 900 to 1500 s, the 11 ambulances of `--ambulances` (2 drive in this window, leaving at 900 and 1200 s), priority off and on | done |
 
 Hanin's four commands (Colab, after `%cd /content/MARL-Traffic` and `!git pull`; CPU is fine; they use her B1 checkpoint):
 ```
@@ -46,8 +47,12 @@ python scripts/record_demo_4x4.py --cond fixed --scenario surge --start 1500 --l
 python scripts/record_demo_4x4.py --cond E1 --ckpt $E1 --blind B1
 python scripts/record_demo_4x4.py --cond E1 --ckpt $E1 --blind B1 --failsafe
 python scripts/record_demo_4x4.py --cond B2 --ckpt $B2 --blind B1
+python scripts/record_demo_4x4.py --cond E1 --ckpt $E1 --ambulances
+python scripts/record_demo_4x4.py --cond E1 --ckpt $E1 --ambulances --preempt
 ```
 `--blind` and `--failsafe` do exactly what they do in `evaluate_4x4.py`: the same environment code and the same fallback cycle. A recording made with `--blind` stores `"blind": "B1"`, and the viewer then marks junction B1 in red ("SENSORS OFF") and shows the failure line under the scenario name.
+
+In an ambulance recording the ambulances are drawn white with a red stripe, flashing beacons and a red ring, and with priority on a blue "PRIORITY" tag appears over every junction while it serves an ambulance. The "Follow vehicle" camera follows an ambulance when one is on the road.
 
 A recording is a 10-minute window. The delay numbers in the report and on the website are for whole one-hour episodes over 10 seeds, so the replay illustrates a result; it is not the result itself.
 

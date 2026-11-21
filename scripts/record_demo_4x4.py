@@ -14,7 +14,9 @@ Colab (one per runtime, after !git pull). Examples:
     !python scripts/record_demo_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1               # sensor failure
     !python scripts/record_demo_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1 --failsafe    # ... with fallback
 Defaults: peak scenario, evaluation seed 0, window 900-1500 s (the middle of the rush hour).
---blind and --failsafe work exactly as in evaluate_4x4.py (same environment code, same fallback cycle).
+    !python scripts/record_demo_4x4.py --cond E1 --ckpt <E1 checkpoint> --ambulances             # ambulances, no priority
+    !python scripts/record_demo_4x4.py --cond E1 --ckpt <E1 checkpoint> --ambulances --preempt   # ... with signal priority
+--blind, --failsafe, --ambulances and --preempt work exactly as in evaluate_4x4.py (same code).
 Output: /content/drive/MyDrive/MARL_results/demo/run_<label>.json  (a few MB)
 """
 
@@ -26,8 +28,8 @@ import sys
 import time
 
 REPO = "/content/MARL-Traffic"
-TYPES = ["car", "van", "bus", "truck"]
-TYPE_SIZE = {"car": (4.5, 1.8), "van": (6.5, 2.1), "bus": (12.0, 2.5), "truck": (10.0, 2.4)}
+TYPES = ["car", "van", "bus", "truck", "ambulance"]
+TYPE_SIZE = {"car": (4.5, 1.8), "van": (6.5, 2.1), "bus": (12.0, 2.5), "truck": (10.0, 2.4), "ambulance": (6.5, 2.2)}
 
 p = argparse.ArgumentParser()
 p.add_argument("--net-only", action="store_true", help="only export the road network to --net-out")
@@ -50,7 +52,18 @@ p.add_argument("--blind", default="",
 p.add_argument("--failsafe", action="store_true",
                help="with --blind: the lights with failed detectors run the tuned fixed-time cycle "
                     "(--green s greens) instead of their agent, as in evaluate_4x4.py")
+p.add_argument("--ambulances", action="store_true",
+               help="add the 11 ambulances of evaluate_4x4.py --ambulances (same schedule for this scenario and seed)")
+p.add_argument("--preempt", action="store_true", help="with --ambulances: signal preemption, as in evaluate_4x4.py")
 args = p.parse_args()
+if args.ambulances:
+    if args.cond not in ("B1", "B2", "E1", "tuned"):
+        sys.exit("--ambulances: B1, B2, E1 or tuned (as in evaluate_4x4.py)")
+    if args.blind:
+        sys.exit("--ambulances is a separate experiment: do not combine it with --blind")
+    print("Ambulances: 11 per episode; signal preemption " + ("ON" if args.preempt else "OFF"), flush=True)
+elif args.preempt:
+    sys.exit("--preempt needs --ambulances")
 if args.blind:
     if args.cond not in ("B1", "B2", "E1"):
         sys.exit("--blind only makes sense for trained controllers (fixed, tuned and random use no sensors)")
@@ -129,6 +142,7 @@ else:
     MG = 5 if args.min_green is None else args.min_green
 set_min_green(MG)
 LABEL = args.label or (args.cond + ("_blind" if args.blind else "") + ("_failsafe" if args.failsafe else "")
+                        + ("_amb" if args.ambulances else "") + ("_preempt" if args.preempt else "")
                         + ("_explore" if args.explore else ""))
 OUT = args.out or f"/content/drive/MyDrive/MARL_results/demo/run_{LABEL}.json"
 ROUTE = f"{REPO}/configs/routes_4x4_{args.scenario}_seed{args.seed}.rou.xml"
@@ -224,6 +238,14 @@ else:
         import env.traci_env as te
         assert te.FAILED and set(te.FAILED) == set(FAILED_LIGHTS), "sensor failure was not applied"
     obs, _ = env.reset()
+    pre = None
+    if args.ambulances:
+        from env import ambulance
+        from env.traci_env import LANE_IDS
+        ambulance.add_to_simulation(ambulance.schedule(NET, "4x4", args.scenario, args.seed))
+        pre = ambulance.Preemption(LANE_IDS)
+        if args.preempt:
+            choose = ambulance.wrap_choose(choose, pre, env._env)
 
 tl_ids = sorted(traci.trafficlight.getIDList())
 tl_lanes = {tl: sorted(set(traci.trafficlight.getControlledLanes(tl))) for tl in tl_ids}
@@ -245,6 +267,8 @@ while t < END:
             with torch.no_grad():
                 m = model.encoder(own.to(next(model.parameters()).device)).cpu()
             fr["msg"] = [round(float(x), 2) for x in m.norm(dim=1)]
+        if args.preempt:   # lights that served an ambulance in this second (indices into tls)
+            fr["pre"] = [tl_ids.index(tl) for tl in sorted(pre.serving)]
         frames.append(fr)
     if t % 300 == 0:
         print(f"  t={t}s  vehicles {traci.vehicle.getIDCount()}  ({time.time() - t0:.0f}s)", flush=True)
@@ -256,6 +280,7 @@ except Exception:
 data = {"label": LABEL, "cond": args.cond, "scenario": args.scenario, "seed": args.seed, "min_green": MG,
         "explore": bool(args.explore), "start": args.start, "duration": args.duration, "tls": tl_ids,
         "blind": args.blind, "failsafe": bool(args.failsafe),
+        "ambulances": bool(args.ambulances), "preempt": bool(args.preempt),
         "types": TYPES, "frames": frames}
 os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
 with open(OUT, "w") as f:

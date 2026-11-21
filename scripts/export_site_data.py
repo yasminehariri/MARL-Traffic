@@ -47,6 +47,12 @@ for c in ("E1", "B1"):
         add(f"{M}/4x4_eval_mg5_explore_{c}_s{s}.csv", "normal", "standard", c, "sampled", train_seed=s)
 add(f"{M}/4x4_blind_ablated_mg5_E1.csv", "sensor_failure", "failure_ablated", "E1", "greedy", required=False)
 add(f"{M}/4x4_blind_ablated_mg5_explore_E1.csv", "sensor_failure", "failure_ablated", "E1", "sampled", required=False)
+# ambulance extension (scripts/evaluate_4x4.py --ambulances [--preempt]); the usual columns cover the other traffic
+AMB = {}
+for c in ("E1", "B1", "B2", "tuned"):
+    for var, tag in (("no_priority", "amb"), ("priority", "amb_preempt")):
+        AMB[(c, var)] = f"{M}/4x4_{tag}_mg5_{c}.csv"
+        add(AMB[(c, var)], "ambulance", var, c, "none" if c == "tuned" else "greedy", required=False)
 # fixed-time and tuned: identical under both rule versions (verified), kept in Hanin's version-1 file
 add(f"{R}/4x4_eval_hanin.csv", "normal", "standard", "fixed", "none", label="fixed")
 add(f"{R}/4x4_eval_hanin.csv", "normal", "standard", "tuned", "none", label="tuned")
@@ -230,6 +236,37 @@ def git_commit():
         return None
 
 
+def ambulance_results():
+    """Per controller and scenario (and all scenarios together): ambulances and other traffic, priority
+    off against on, paired by traffic seed. Empty until the ambulance runs exist."""
+    out = []
+    for c in ("E1", "B1", "B2", "tuned"):
+        f_off, f_on = AMB[(c, "no_priority")], AMB[(c, "priority")]
+        if not (os.path.exists(f_off) and os.path.exists(f_on)):
+            continue
+        off, on = pd.read_csv(f_off), pd.read_csv(f_on)
+        for sc in ["uniform", "peak", "asym", "all"]:
+            a = off if sc == "all" else off[off.scenario == sc]
+            b = on if sc == "all" else on[on.scenario == sc]
+            a, b = a.set_index(["scenario", "seed"]).sort_index(), b.set_index(["scenario", "seed"]).sort_index()
+            keys = a.index.intersection(b.index)
+            if len(keys) < 5:
+                continue
+            a, b = a.loc[keys], b.loc[keys]
+            row = dict(controller=c, scenario=sc, n=int(len(keys)), ambulances=int(a.amb_n.sum()))
+            for col, name in (("amb_travel_time", "amb_travel_time"), ("amb_stops", "amb_stops"),
+                              ("amb_wait", "amb_wait"), ("true_delay", "other_delay")):
+                x, y = a[col].to_numpy(float), b[col].to_numpy(float)
+                row[f"{name}_off"], row[f"{name}_on"] = round(float(x.mean()), 3), round(float(y.mean()), 3)
+                row[f"{name}_change_pct"] = round(float(100 * (y.mean() - x.mean()) / x.mean()), 1) if x.mean() else None
+                row[f"{name}_p"] = float(stats.wilcoxon(x, y).pvalue) if np.any(x != y) else 1.0
+            row["amb_arrived_off"], row["amb_arrived_on"] = int(a.amb_arrived.sum()), int(b.amb_arrived.sum())
+            row["other_teleports_off"], row["other_teleports_on"] = int(a.teleports.sum()), int(b.teleports.sum())
+            row["preempt_events_per_episode"] = round(float(b.preempt_events.mean()), 1)
+            out.append(row)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="print key numbers to compare with the report")
@@ -242,6 +279,7 @@ def main():
         "summary.json": summarise(ep),
         "comparisons.json": comparisons(ep),
         "training.json": training(),
+        "ambulance.json": ambulance_results(),
     }
     if not args.no_tsne:
         files["messages.json"] = messages()

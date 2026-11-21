@@ -20,6 +20,10 @@ Minimum green: trained checkpoints are evaluated with the minimum green they wer
 (read from run_info.json). Runs with a minimum green go to <grid>_eval_mg5.csv by default, so
 version 1 results (4x4_eval.csv) are never mixed with them.
 
+Ambulances (--ambulances, optionally --preempt): 11 ambulances per episode, identical for every
+controller (env/ambulance.py). The usual columns then describe the OTHER traffic only (ambulances are
+left out of every metric), and extra columns give the ambulance results.
+
 Colab (one evaluation per runtime: runs in the same runtime would share tripinfo.xml):
     !python scripts/evaluate_4x4.py --cond fixed
     !python scripts/evaluate_4x4.py --cond tuned
@@ -68,6 +72,13 @@ p.add_argument("--ablate-messages", action="store_true",
 p.add_argument("--messages-npz", default=None,
                help="messages_4x4.npz the average message is taken from "
                     "(default: results/mg5/e1_messages_4x4_mg5/messages_4x4.npz in the repo)")
+p.add_argument("--ambulances", action="store_true",
+               help="add 11 ambulances per episode (one every 5 minutes, the same for every controller, see "
+                    "env/ambulance.py). The normal columns then cover the other traffic only; amb_* columns "
+                    "give the ambulance results. 4x4 grid; B1, B2, E1 and tuned")
+p.add_argument("--preempt", action="store_true",
+               help="with --ambulances: a light with an ambulance on one of its approaches serves that "
+                    "approach (signal preemption), then hands back to its controller")
 p.add_argument("--grid", default="4x4", choices=["4x4", "2x2"],
                help="grid to evaluate ON (a 2x2-trained E1 can be evaluated on 4x4 for RQ3)")
 args = p.parse_args()
@@ -94,6 +105,20 @@ if args.failsafe:
         sys.exit("--failsafe needs --blind (it decides what the lights with failed detectors do)")
     print(f"Fail-safe: {','.join(FAILED_LIGHTS)} run fixed-time ({args.green} s greens) instead of their agent",
           flush=True)
+if args.ambulances:
+    if args.cond not in ("B1", "B2", "E1", "tuned"):
+        sys.exit("--ambulances runs through the agents' environment: B1, B2, E1 or tuned (tuned is the "
+                 "fixed-time controller that preemption can override in the same way)")
+    if args.grid != "4x4":
+        sys.exit("--ambulances is set up for the 4x4 grid")
+    if args.blind or args.ablate_messages:
+        sys.exit("--ambulances is a separate experiment: do not combine it with --blind or --ablate-messages")
+    if not args.out:
+        sys.exit("--ambulances needs an explicit --out, so ambulance rows never mix with normal results")
+    print("Ambulances: 11 per episode, every 300 s; signal preemption " + ("ON" if args.preempt else "OFF"),
+          flush=True)
+elif args.preempt:
+    sys.exit("--preempt needs --ambulances")
 a, b = (args.seeds.split("-") + [None])[:2]
 SEEDS = list(range(int(a), int(b) + 1)) if b else [int(s) for s in args.seeds.split(",")]
 SCENARIOS = args.scenarios.split(",")
@@ -122,15 +147,19 @@ NET, CFG = {"4x4": ("mygrid4x4.net.xml", "simulation_4x4.sumocfg"),
 os.environ["MARL_NET_FILE"] = f"{REPO}/configs/{NET}"
 os.environ["MARL_SUMO_CFG"] = f"{REPO}/configs/{CFG}"
 sys.path.insert(0, REPO)
+from env.ambulance import is_ambulance  # noqa: E402  (no SUMO state; safe before the env import)
 TRIPINFO_ENV = f"{REPO}/configs/tripinfo.xml"  # written by both sumocfg files
 FIELDS = ["label", "cond", "scenario", "seed", "generated", "entered", "finished",
           "wait_finished", "true_delay", "mean_travel_time", "teleports", "explore", "ckpt", "time",
           "min_green", "switches_per_light_h", "grid"] + (["blind", "failsafe"] if args.blind else []) \
-         + (["ablate_messages"] if args.ablate_messages else [])
+         + (["ablate_messages"] if args.ablate_messages else []) \
+         + (["ambulances", "preempt", "amb_n", "amb_arrived", "amb_travel_time", "amb_stops", "amb_wait",
+             "amb_teleports", "preempt_events", "preempt_light_s"] if args.ambulances else [])
 
 
 def metrics(tripinfo, route):
-    infos = ET.parse(tripinfo).getroot().findall("tripinfo")
+    # ambulances (--ambulances) are reported separately, never in the traffic metrics
+    infos = [t for t in ET.parse(tripinfo).getroot().findall("tripinfo") if not is_ambulance(t.get("id"))]
     planned = {v.get("id"): float(v.get("depart")) for v in ET.parse(route).getroot().iter("vehicle")}
     planned = {k: d for k, d in planned.items() if d < END}
     seen = {t.get("id"): t for t in infos}
@@ -162,10 +191,11 @@ def done_rows():
         if file_mg and file_mg != {MIN_GREEN}:
             sys.exit(f"{args.out} holds rows with min_green {sorted(file_mg)}, this run uses {MIN_GREEN}. "
                      f"Use a different --out so the two rule sets never mix.")
-    file_kind = {(r.get("blind") or "", int(r.get("failsafe") or 0), int(r.get("ablate_messages") or 0)) for r in rows}
-    run_kind = (args.blind, int(args.failsafe), int(args.ablate_messages))
+    file_kind = {(r.get("blind") or "", int(r.get("failsafe") or 0), int(r.get("ablate_messages") or 0),
+                  int(r.get("ambulances") or 0), int(r.get("preempt") or 0)) for r in rows}
+    run_kind = (args.blind, int(args.failsafe), int(args.ablate_messages), int(args.ambulances), int(args.preempt))
     if rows and file_kind != {run_kind}:
-        sys.exit(f"{args.out} holds rows of another kind (sensor failure, fail-safe, message ablation) "
+        sys.exit(f"{args.out} holds rows of another kind (sensor failure, fail-safe, message ablation, ambulances) "
                  f"{sorted(file_kind)}; this run is {run_kind}. Use a different --out.")
     return {(r["label"], r["scenario"], int(r["seed"])) for r in rows}
 
@@ -196,13 +226,27 @@ def run_fixed(route):
     return m
 
 
-def run_env(env, choose, route):
+def run_env(env, choose, route, scenario=None, seed=None):
     import traci
     obs, _ = env.reset()
-    done, t, teleports = False, 0, 0
+    plan = pre = None
+    if args.ambulances:
+        from env import ambulance
+        from env.traci_env import LANE_IDS
+        plan = ambulance.schedule(os.environ["MARL_NET_FILE"], args.grid, scenario, seed)
+        ambulance.add_to_simulation(plan)
+        pre = ambulance.Preemption(LANE_IDS)
+        if args.preempt:
+            choose = ambulance.wrap_choose(choose, pre, env._env)
+    done, t, teleports, amb_teleports = False, 0, 0, 0
     while not done:
         obs, _, term, trunc, _ = env.step(choose(obs, t))
-        teleports += traci.simulation.getStartingTeleportNumber()
+        if args.ambulances:
+            ids = traci.simulation.getStartingTeleportIDList()
+            amb_teleports += sum(1 for v in ids if is_ambulance(v))
+            teleports += sum(1 for v in ids if not is_ambulance(v))
+        else:
+            teleports += traci.simulation.getStartingTeleportNumber()
         t += 1
         done = term.get("__all__", False) or trunc.get("__all__", False)
     try:
@@ -214,6 +258,11 @@ def run_env(env, choose, route):
     m["teleports"] = teleports
     sw = env._env.switches
     m["switches_per_light_h"] = round(sum(sw.values()) / len(sw) * 3600 / END, 1)
+    if args.ambulances:
+        from env import ambulance
+        m.update(ambulance.trip_metrics(TRIPINFO_ENV, plan), amb_teleports=amb_teleports,
+                 preempt_events=pre.events if args.preempt else 0,
+                 preempt_light_s=pre.seconds if args.preempt else 0)
     return m
 
 
@@ -308,7 +357,7 @@ def main():
             m = run_fixed(route)
         else:
             env = Env({"route_file": route})
-            m = run_env(env, choose, route)
+            m = run_env(env, choose, route, sc, s)
         row = dict(label=LABEL, cond=args.cond, scenario=sc, seed=s, explore=int(args.explore),
                    ckpt=args.ckpt or (f"green={args.green}" if args.cond == "tuned" else ""),
                    time=time.strftime("%Y-%m-%d %H:%M:%S"), min_green=MIN_GREEN, grid=args.grid, **m)
@@ -316,11 +365,17 @@ def main():
             row["blind"], row["failsafe"] = args.blind, int(args.failsafe)
         if args.ablate_messages:
             row["ablate_messages"] = 1
+        if args.ambulances:
+            row["ambulances"], row["preempt"] = 1, int(args.preempt)
         write_row(row)
         print(f"{LABEL:8s} {sc:8s} seed{s}: entered {m['entered']}/{m['generated']} | finished {m['finished']} | "
               f"true delay {m['true_delay']:7.2f}s | wait(fin) {m['wait_finished']:7.2f}s | "
               f"teleports {m['teleports']} | switches/light/h {m['switches_per_light_h']} | "
               f"{time.time() - t0:.0f}s", flush=True)
+        if args.ambulances:
+            print(f"{'':8s} ambulances: arrived {m['amb_arrived']}/{m['amb_n']} | travel time {m['amb_travel_time']:6.1f}s | "
+                  f"stops {m['amb_stops']:.2f} | waiting {m['amb_wait']:.1f}s | teleports {m['amb_teleports']} | "
+                  f"preemptions {m['preempt_events']}", flush=True)
 
 
 if __name__ == "__main__":

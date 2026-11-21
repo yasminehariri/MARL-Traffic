@@ -19,10 +19,12 @@ Show delays with **1 decimal** (`x.toFixed(1)`), percentages with 0 decimals, an
 | | `sensor_failure` | All 4 queue detectors of light B1 read 0 (RQ4) |
 | | `transfer` | E1 trained on 2x2, run on 4x4 without retraining (RQ5) |
 | | `grid_2x2` | 2x2 grid results |
+| | `ambulance` | 11 ambulances per episode; the usual columns describe the other traffic (extension) |
 | `variant` | `standard` | Everything works |
 | | `failure` | B1's detectors broken |
 | | `failure_failsafe` | B1's detectors broken, B1 falls back to the tuned fixed-time cycle |
 | | `failure_ablated` | B1's detectors broken and E1's messages replaced by their average (present only once those runs exist) |
+| | `no_priority` / `priority` | Ambulance runs without and with signal priority |
 | `controller` | `E1` `B1` `B2` `fixed` `tuned` `random` `E1_from2x2` | Display names are in `meta.json` → `controllers` |
 | `mode` | `greedy` | The agent always takes its most likely action (deterministic) |
 | | `sampled` | The agent samples from its policy (`--explore`) |
@@ -69,6 +71,10 @@ One object per training run (`4x4_E1`, `4x4_E1_seed1`, …, `2x2_E1`):
 - `correlation`: `rows` (8 message dimensions plus PC1 and PC2) × `cols` (queues, green direction, time in phase), with `r[i][j]` the Pearson correlation. Show it as a heatmap with a diverging scale from -1 to 1.
 - `ablation_normal_traffic`: E1 with its real messages vs with messages replaced by their average, in normal traffic (9 episodes). It gives `mean_normal`, `mean_ablated`, `worse_count` and `wilcoxon_p`.
 - `report`: decoding scores, for example `decode_phase_accuracy` vs `phase_majority_baseline`, and `decode_queue_total_r2`.
+
+### `ambulance.json`: ambulances and signal priority (extension)
+One object per controller (`E1`, `B1`, `B2`, `tuned`) and scenario (`uniform`, `peak`, `asym`, plus `all` for the three together), comparing priority off against on with the same 11 ambulances per episode:
+`amb_travel_time_off` / `_on` (seconds from planned departure to arrival), `amb_stops_*`, `amb_wait_*`, `other_delay_*` (true delay of all other vehicles), each with `_change_pct` (negative = lower with priority) and `_p` (paired Wilcoxon). It also has `amb_arrived_off` / `_on` (out of `ambulances`), `other_teleports_*` and `preempt_events_per_episode`. The list is empty until the ambulance runs are in `results/mg5/`. The other-traffic rows are also in `summary.json` and `episodes.json` as experiment `ambulance`, variants `no_priority` and `priority`.
 
 ### `meta.json`
 `generated` (time), `git_commit`, `controllers` (display names), `units`, `sources` (every CSV used, with a short checksum) and `missing_files` (expected files that do not exist yet). The site footer should show "Data generated <generated> from commit <git_commit>".

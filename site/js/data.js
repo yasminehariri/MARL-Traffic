@@ -9,7 +9,7 @@
 //
 // Filters default to the main model (train_seed 0) and the 4x4 grid unless you pass those keys.
 
-const FILES = ['summary', 'comparisons', 'training', 'messages', 'meta', 'episodes'];
+const FILES = ['summary', 'comparisons', 'training', 'messages', 'meta', 'episodes', 'ambulance'];
 
 export async function loadData(base = new URL('../data/', import.meta.url).href) {
   const got = await Promise.all(FILES.map(async f => {

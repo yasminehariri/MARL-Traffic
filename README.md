@@ -87,6 +87,13 @@ python scripts/evaluate_4x4.py --cond E1 --ckpt <E1 checkpoint> --blind B1 --abl
 ```
 Checks: `python tests/test_sensor_failure.py` (exactly the failed readings change, nothing else) and `python tests/test_failsafe.py <checkpoint>` (B1 follows the fixed cycle, all other lights keep their agent's actions).
 
+**4c. Ambulances and signal priority (extension):** 11 ambulances per episode (one every 5 minutes, each on a random boundary-to-boundary route crossing at least 3 junctions; the same ambulances for every controller, see `env/ambulance.py`). With `--preempt`, a light with an ambulance on one of its approaches serves that approach and then hands back to its controller. The environment's safety rules stay on: the 3 s yellow is never shortened (FHWA Traffic Signal Timing Manual, 9.1.2) and the 5 s minimum green holds. Each controller is run twice, priority off and on, greedy:
+```
+python scripts/evaluate_4x4.py --cond E1 --ckpt <E1 checkpoint> --ambulances --label E1_amb --out MARL_results/4x4_amb_mg5_E1.csv
+python scripts/evaluate_4x4.py --cond E1 --ckpt <E1 checkpoint> --ambulances --preempt --label E1_amb_preempt --out MARL_results/4x4_amb_preempt_mg5_E1.csv
+```
+The same for B1, B2 and tuned (`--cond tuned`, no checkpoint). With `--ambulances` the usual columns describe the other traffic only; the `amb_*` columns give the ambulances' travel time (from planned departure to arrival; an ambulance still on the road at 3600 s counts until then), stops and waiting, and `preempt_events` / `preempt_light_s` give how often and how long lights served ambulances. Without `--ambulances` every result is unchanged (checked against the published rows). Check: `python tests/test_ambulance.py` (every second of a full episode: the override is exactly the rule, other lights untouched, yellow always 3 s, ambulance green within 11 s and kept until it has crossed).
+
 **5. Tables, statistics and figures:** the exact commands are at the end of [`results/mg5/final/README.md`](results/mg5/final/README.md).
 
 **6. Demo:** see [`demo/README.md`](demo/README.md). Check it with `python tests/test_viewer.py`.
