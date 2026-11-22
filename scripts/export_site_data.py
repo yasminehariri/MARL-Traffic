@@ -49,10 +49,21 @@ add(f"{M}/4x4_blind_ablated_mg5_E1.csv", "sensor_failure", "failure_ablated", "E
 add(f"{M}/4x4_blind_ablated_mg5_explore_E1.csv", "sensor_failure", "failure_ablated", "E1", "sampled", required=False)
 # ambulance extension (scripts/evaluate_4x4.py --ambulances [--preempt]); the usual columns cover the other traffic
 AMB = {}
-for c in ("E1", "B1", "B2", "tuned"):
+for c, ts in (("E1", 0), ("B1", 0), ("B2", 0), ("tuned", 0), ("E1", 1), ("E1", 2), ("B1", 1), ("B1", 2)):
+    sfx = f"_s{ts}" if ts else ""
     for var, tag in (("no_priority", "amb"), ("priority", "amb_preempt")):
-        AMB[(c, var)] = f"{M}/4x4_{tag}_mg5_{c}.csv"
-        add(AMB[(c, var)], "ambulance", var, c, "none" if c == "tuned" else "greedy", required=False)
+        AMB[(c, var, ts)] = f"{M}/4x4_{tag}_mg5_{c}{sfx}.csv"
+        add(AMB[(c, var, ts)], "ambulance", var, c, "none" if c == "tuned" else "greedy", train_seed=ts,
+            required=False)
+# sensor failure for training seeds 1 and 2 (greedy), checking that the robustness result is not one lucky run
+for c in ("E1", "B1"):
+    for ts in (1, 2):
+        add(f"{M}/4x4_blind_mg5_{c}_s{ts}.csv", "sensor_failure", "failure", c, "greedy", train_seed=ts, required=False)
+# E1 no-communication control (train_4x4.py --no-comm): E1's network and loss, neighbour messages replaced by zeros
+add(f"{M}/4x4_eval_mg5_E1nocomm.csv", "normal", "standard", "E1_nocomm", "greedy", required=False)
+add(f"{M}/4x4_eval_mg5_explore_E1nocomm.csv", "normal", "standard", "E1_nocomm", "sampled", required=False)
+add(f"{M}/4x4_blind_mg5_E1nocomm.csv", "sensor_failure", "failure", "E1_nocomm", "greedy", required=False)
+add(f"{M}/4x4_blind_mg5_explore_E1nocomm.csv", "sensor_failure", "failure", "E1_nocomm", "sampled", required=False)
 # fixed-time and tuned: identical under both rule versions (verified), kept in Hanin's version-1 file
 add(f"{R}/4x4_eval_hanin.csv", "normal", "standard", "fixed", "none", label="fixed")
 add(f"{R}/4x4_eval_hanin.csv", "normal", "standard", "tuned", "none", label="tuned")
@@ -72,6 +83,7 @@ CONTROLLERS = {
     "random": "Random actions",
     "E1_from2x2": "E1 trained on 2x2, run on 4x4 (no retraining)",
     "E1_ablated": "E1 with its messages replaced by their average",
+    "E1_nocomm": "E1 control: same network and training, no communication",
 }
 COLS = ["generated", "entered", "finished", "true_delay", "wait_finished", "mean_travel_time", "teleports",
         "switches_per_light_h"]
@@ -173,7 +185,8 @@ def comparisons(ep):
 def training():
     runs = {"4x4_E1": ("E1", 0, 16), "4x4_E1_seed1": ("E1", 1, 16), "4x4_E1_seed2": ("E1", 2, 16),
             "4x4_B1": ("B1", 0, 16), "4x4_B1_seed1": ("B1", 1, 16), "4x4_B1_seed2": ("B1", 2, 16),
-            "4x4_B2": ("B2", 0, 16), "2x2_E1": ("E1 (2x2 grid)", 0, 4)}
+            "4x4_B2": ("B2", 0, 16), "2x2_E1": ("E1 (2x2 grid)", 0, 4),
+            "4x4_E1nocomm": ("E1_nocomm", 0, 16)}
     out = []
     for name, (ctrl, ts, agents) in runs.items():
         p = f"{M}/progress_{name}.csv"
@@ -240,8 +253,8 @@ def ambulance_results():
     """Per controller and scenario (and all scenarios together): ambulances and other traffic, priority
     off against on, paired by traffic seed. Empty until the ambulance runs exist."""
     out = []
-    for c in ("E1", "B1", "B2", "tuned"):
-        f_off, f_on = AMB[(c, "no_priority")], AMB[(c, "priority")]
+    for (c, var, ts) in [k for k in AMB if k[1] == "no_priority"]:
+        f_off, f_on = AMB[(c, "no_priority", ts)], AMB[(c, "priority", ts)]
         if not (os.path.exists(f_off) and os.path.exists(f_on)):
             continue
         off, on = pd.read_csv(f_off), pd.read_csv(f_on)
@@ -253,7 +266,7 @@ def ambulance_results():
             if len(keys) < 5:
                 continue
             a, b = a.loc[keys], b.loc[keys]
-            row = dict(controller=c, scenario=sc, n=int(len(keys)), ambulances=int(a.amb_n.sum()))
+            row = dict(controller=c, train_seed=ts, scenario=sc, n=int(len(keys)), ambulances=int(a.amb_n.sum()))
             for col, name in (("amb_travel_time", "amb_travel_time"), ("amb_stops", "amb_stops"),
                               ("amb_wait", "amb_wait"), ("true_delay", "other_delay")):
                 x, y = a[col].to_numpy(float), b[col].to_numpy(float)

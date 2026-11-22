@@ -173,8 +173,11 @@ def main():
     p.add_argument("--out", default=None, help="default: MARL_results/e1_messages_4x4[_mg<N>]")
     p.add_argument("--min-green", type=int, default=None, help="read from run_info.json; pass only to double-check")
     args = p.parse_args()
+    args.ckpt = os.path.abspath(args.ckpt)   # RLlib needs an absolute path (relative ones fail to restore)
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from mgutil import min_green_for, set_min_green
+    from mgutil import min_green_for, set_min_green, no_comm_for
+    if no_comm_for(args.ckpt):
+        sys.exit("This checkpoint is the E1 no-communication control: it uses no messages, so there are none to check")
     mg = min_green_for(args.ckpt, args.min_green)
     set_min_green(mg)
     tag = f"_mg{mg}" if mg > 0 else ""

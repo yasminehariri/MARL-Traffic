@@ -23,6 +23,10 @@ Options added after the lane-order fix:
     --reward team|local|neighbourhood   (default team, the original design)
     --train-scenarios uniform|uniform,peak,asym   (default uniform)
     --grid 4x4|2x2        (default 4x4)
+    --no-comm             E1 only: the no-communication control (env/comm_model.py E1NoCommModel).
+                          Same network, loss and settings as E1, but the neighbour message is zeros.
+                          Saved to <COND>nocomm_<REWARD>_mg5 and recorded in run_info.json, which
+                          every evaluation script reads, so it can never be evaluated with messages.
 
 Outputs (default: /content/drive/MyDrive/MARL_checkpoints/<GRID>/<COND>_<REWARD>/):
     checkpoints/ckpt_000010, ckpt_000020, ...   model checkpoints (last 3 kept, plus every 100th)
@@ -59,12 +63,19 @@ def parse_args():
     p.add_argument("--grid", default="4x4", choices=["4x4", "2x2"])
     p.add_argument("--min-green", type=int, default=5,
                    help="minimum green in seconds (default 5). 0 = version 1 rules (no minimum)")
+    p.add_argument("--no-comm", action="store_true",
+                   help="E1 only: train the no-communication control (neighbour message replaced by zeros)")
     return p.parse_args()
 
 
 args = parse_args()
+if args.out:
+    args.out = os.path.abspath(args.out)   # RLlib saves and restores only absolute paths
+if args.no_comm and args.cond != "E1":
+    sys.exit("--no-comm is the E1 control: use it with --cond E1")
 MG_TAG = f"_mg{args.min_green}" if args.min_green > 0 else ""
-OUT = args.out or f"/content/drive/MyDrive/MARL_checkpoints/{args.grid}/{args.cond}_{args.reward}{MG_TAG}"
+NC_TAG = "nocomm" if args.no_comm else ""
+OUT = args.out or f"/content/drive/MyDrive/MARL_checkpoints/{args.grid}/{args.cond}{NC_TAG}_{args.reward}{MG_TAG}"
 CKPT_DIR = os.path.join(OUT, "checkpoints")
 os.makedirs(CKPT_DIR, exist_ok=True)
 
@@ -115,12 +126,16 @@ def build_config():
         from env.rllib_env_b2 import MARLTrafficEnvB2 as Env
     else:
         from env.rllib_env_e1 import MARLTrafficEnvE1 as Env
-        from env.comm_model import E1CommModel
         from env.diversity_policy import E1DiversityPPOPolicy
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from mgutil import e1_model
+        name, model_cls = e1_model(args.no_comm)
         # Register AFTER ray.init, otherwise a fresh Ray instance forgets it
-        ModelCatalog.register_custom_model("e1_comm_model_v3", E1CommModel)
+        ModelCatalog.register_custom_model(name, model_cls)
         policy_cls = E1DiversityPPOPolicy
-        training["model"] = {"custom_model": "e1_comm_model_v3"}
+        training["model"] = {"custom_model": name}
+        print(f"[{args.cond}] model: {model_cls.__name__}" + ("  (CONTROL: neighbour messages are zeros, no communication)"
+                                                          if args.no_comm else ""), flush=True)
 
     return (PPOConfig()
             .environment(Env, env_config={"route_file": TRAIN_ROUTES})
@@ -178,6 +193,11 @@ def main():
         if old_mg != args.min_green:
             sys.exit(f"{OUT} was trained with min_green={old_mg}; resuming with --min-green {args.min_green} "
                      f"would mix two rule sets in one run.")
+        with open(info_path) as f:
+            old_nc = bool(json.load(f).get("no_comm", False))
+        if old_nc != args.no_comm:
+            sys.exit(f"{OUT} was trained {'WITHOUT' if old_nc else 'WITH'} communication; resume it "
+                     f"{'with' if old_nc else 'without'} --no-comm, exactly as it was started.")
     if state["iteration"] > 0 and not args.resume:
         sys.exit(f"{OUT} already has a run at iteration {state['iteration']}. "
                  f"Add --resume to continue it, or choose a different --out.")
@@ -200,7 +220,8 @@ def main():
               f"(iteration {state['iteration']}, {state['total_steps']} steps)", flush=True)
 
     with open(os.path.join(OUT, "run_info.json"), "w") as f:
-        json.dump({"cond": args.cond, "grid": args.grid, "reward": args.reward, "min_green": args.min_green,
+        json.dump({"cond": args.cond, "no_comm": args.no_comm, "grid": args.grid, "reward": args.reward,
+                   "min_green": args.min_green,
                    "train_scenarios": args.train_scenarios,
                    "target_steps": args.steps, "seed": args.seed,
                    "train_routes": TRAIN_ROUTES, "gpus": NUM_GPUS,

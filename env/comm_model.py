@@ -25,6 +25,8 @@ class CommPolicyNetwork(nn.Module):
 
 
 class E1CommModel(TorchModelV2, nn.Module):
+    NO_COMM = False   # True only in E1NoCommModel (the no-communication control, below)
+
     def __init__(self, obs_space, action_space, num_outputs, model_config, name):
         TorchModelV2.__init__(self, obs_space, action_space, num_outputs, model_config, name)
         nn.Module.__init__(self)
@@ -53,6 +55,8 @@ class E1CommModel(TorchModelV2, nn.Module):
         mask_expanded = mask.unsqueeze(-1)                                       # (batch, 4, 1)
         num_real = mask.sum(dim=1, keepdim=True).clamp(min=1.0)                  # (batch, 1) -- clamp avoids div-by-zero
         mean_neighbor_msg = (neighbor_msgs * mask_expanded).sum(dim=1) / num_real # (batch, 8)
+        if self.NO_COMM:   # control: the incoming message carries no information
+            mean_neighbor_msg = torch.zeros_like(mean_neighbor_msg)
 
         policy_input = torch.cat([own_obs, mean_neighbor_msg], dim=1)            # (batch, 17)
         action_logits = self.policy_net(policy_input)
@@ -63,3 +67,14 @@ class E1CommModel(TorchModelV2, nn.Module):
     @override(TorchModelV2)
     def value_function(self):
         return self._last_value
+
+
+class E1NoCommModel(E1CommModel):
+    """No-communication control for E1 (train_4x4.py --cond E1 --no-comm).
+
+    Exactly the E1 network, loss (the diversity penalty on each agent's own message) and training
+    settings, except that the mean neighbour message the policy and value heads receive is replaced
+    by zeros. Agents still see their own 9 observations, so the only difference to E1 is
+    communication. The encoder is still trained by the diversity penalty but cannot affect actions.
+    """
+    NO_COMM = True

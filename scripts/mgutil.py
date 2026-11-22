@@ -44,3 +44,18 @@ def set_min_green(value):
     os.environ["MARL_MIN_GREEN"] = str(int(value))
     print(f"Minimum green: {int(value)} s" + ("  (version 1 rules: no minimum)" if int(value) == 0 else ""),
           flush=True)
+
+
+def no_comm_for(ckpt):
+    """True if the checkpoint is the E1 no-communication control (train_4x4.py --no-comm).
+
+    Read from run_info.json, never from a command-line flag: the control has exactly the same weights
+    as E1, so it would load into the normal E1 model without any error and silently get messages."""
+    info = run_info_for(ckpt) or {}
+    return bool(info.get("no_comm", False))
+
+
+def e1_model(no_comm):
+    """(registered name, model class) for an E1 checkpoint. Import only after set_min_green()."""
+    from env.comm_model import E1CommModel, E1NoCommModel
+    return ("e1_nocomm_model_v1", E1NoCommModel) if no_comm else ("e1_comm_model_v3", E1CommModel)

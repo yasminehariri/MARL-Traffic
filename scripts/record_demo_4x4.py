@@ -56,6 +56,8 @@ p.add_argument("--ambulances", action="store_true",
                help="add the 11 ambulances of evaluate_4x4.py --ambulances (same schedule for this scenario and seed)")
 p.add_argument("--preempt", action="store_true", help="with --ambulances: signal preemption, as in evaluate_4x4.py")
 args = p.parse_args()
+if args.ckpt:
+    args.ckpt = os.path.abspath(args.ckpt)   # RLlib needs an absolute path (relative ones fail to restore)
 if args.ambulances:
     if args.cond not in ("B1", "B2", "E1", "tuned"):
         sys.exit("--ambulances: B1, B2, E1 or tuned (as in evaluate_4x4.py)")
@@ -130,11 +132,14 @@ if args.net_only:
 if not args.cond:
     sys.exit("--cond is required (or --net-only)")
 
-from mgutil import min_green_for, set_min_green  # noqa: E402
+from mgutil import min_green_for, set_min_green, no_comm_for  # noqa: E402
 
 if args.cond in ("B1", "B2", "E1"):
     if not args.ckpt:
         sys.exit("--ckpt is required for trained agents")
+    if args.cond == "E1" and no_comm_for(args.ckpt):
+        sys.exit("This checkpoint is the E1 no-communication control: the demo shows E1's messages, which the "
+                 "control does not use. Record E1 or B1 instead.")
     MG = min_green_for(args.ckpt, args.min_green)
 elif args.cond == "fixed":
     MG = 0

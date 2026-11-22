@@ -82,6 +82,8 @@ p.add_argument("--preempt", action="store_true",
 p.add_argument("--grid", default="4x4", choices=["4x4", "2x2"],
                help="grid to evaluate ON (a 2x2-trained E1 can be evaluated on 4x4 for RQ3)")
 args = p.parse_args()
+if args.ckpt:
+    args.ckpt = os.path.abspath(args.ckpt)   # RLlib needs an absolute path (relative ones fail to restore)
 
 if args.cond in ("B1", "B2", "E1") and not args.ckpt:
     sys.exit("--ckpt is required for trained conditions")
@@ -124,7 +126,20 @@ SEEDS = list(range(int(a), int(b) + 1)) if b else [int(s) for s in args.seeds.sp
 SCENARIOS = args.scenarios.split(",")
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from mgutil import min_green_for, set_min_green, run_info_for  # noqa: E402
+from mgutil import min_green_for, set_min_green, run_info_for, no_comm_for, e1_model  # noqa: E402
+
+# E1 no-communication control (train_4x4.py --no-comm): detected from the checkpoint itself, never from a flag
+NOCOMM = args.cond == "E1" and no_comm_for(args.ckpt)
+if NOCOMM:
+    if not args.out:
+        sys.exit("This checkpoint is the E1 no-communication control: give an explicit --out, so its rows "
+                 "never mix with E1 results")
+    if args.ablate_messages:
+        sys.exit("--ablate-messages: the no-communication control receives no messages to ablate")
+    if not args.label:
+        LABEL = "E1_nocomm" + ("_explore" if args.explore else "")
+    print("Control model: E1 WITHOUT communication (neighbour messages are zeros; detected from run_info.json)",
+          flush=True)
 
 if args.cond in ("B1", "B2", "E1"):
     MIN_GREEN = min_green_for(args.ckpt, args.min_green)
@@ -153,6 +168,7 @@ FIELDS = ["label", "cond", "scenario", "seed", "generated", "entered", "finished
           "wait_finished", "true_delay", "mean_travel_time", "teleports", "explore", "ckpt", "time",
           "min_green", "switches_per_light_h", "grid"] + (["blind", "failsafe"] if args.blind else []) \
          + (["ablate_messages"] if args.ablate_messages else []) \
+         + (["no_comm"] if NOCOMM else []) \
          + (["ambulances", "preempt", "amb_n", "amb_arrived", "amb_travel_time", "amb_stops", "amb_wait",
              "amb_teleports", "preempt_events", "preempt_light_s"] if args.ambulances else [])
 
@@ -192,10 +208,12 @@ def done_rows():
             sys.exit(f"{args.out} holds rows with min_green {sorted(file_mg)}, this run uses {MIN_GREEN}. "
                      f"Use a different --out so the two rule sets never mix.")
     file_kind = {(r.get("blind") or "", int(r.get("failsafe") or 0), int(r.get("ablate_messages") or 0),
-                  int(r.get("ambulances") or 0), int(r.get("preempt") or 0)) for r in rows}
-    run_kind = (args.blind, int(args.failsafe), int(args.ablate_messages), int(args.ambulances), int(args.preempt))
+                  int(r.get("ambulances") or 0), int(r.get("preempt") or 0), int(r.get("no_comm") or 0)) for r in rows}
+    run_kind = (args.blind, int(args.failsafe), int(args.ablate_messages), int(args.ambulances), int(args.preempt),
+                int(NOCOMM))
     if rows and file_kind != {run_kind}:
-        sys.exit(f"{args.out} holds rows of another kind (sensor failure, fail-safe, message ablation, ambulances) "
+        sys.exit(f"{args.out} holds rows of another kind (sensor failure, fail-safe, message ablation, ambulances, "
+                 f"no-communication control) "
                  f"{sorted(file_kind)}; this run is {run_kind}. Use a different --out.")
     return {(r["label"], r["scenario"], int(r["seed"])) for r in rows}
 
@@ -280,11 +298,11 @@ def build_trained():
         from env.rllib_env_b2 import MARLTrafficEnvB2 as Env
     else:
         from env.rllib_env_e1 import MARLTrafficEnvE1 as Env
-        from env.comm_model import E1CommModel
         from env.diversity_policy import E1DiversityPPOPolicy
-        ModelCatalog.register_custom_model("e1_comm_model_v3", E1CommModel)
+        name, model_cls = e1_model(NOCOMM)
+        ModelCatalog.register_custom_model(name, model_cls)
         policy_cls = E1DiversityPPOPolicy
-        training["model"] = {"custom_model": "e1_comm_model_v3"}
+        training["model"] = {"custom_model": name}
     cfg = (PPOConfig()
            .environment(Env, env_config={"route_file": None})
            .framework("torch")
@@ -297,7 +315,12 @@ def build_trained():
     algo = cfg.build()
     torch.set_num_threads(1)
     algo.restore(args.ckpt)
-    print(f"Restored {args.cond} from {args.ckpt}", flush=True)
+    if args.cond == "E1":
+        m = algo.get_policy("shared_policy").model
+        assert type(m).NO_COMM == NOCOMM, "internal error: E1 model kind does not match the checkpoint"
+        print(f"Restored {args.cond} from {args.ckpt} (model {type(m).__name__})", flush=True)
+    else:
+        print(f"Restored {args.cond} from {args.ckpt}", flush=True)
     if args.ablate_messages:
         import numpy as np
         npz = args.messages_npz or os.path.join(REPO, "results", "mg5", "e1_messages_4x4_mg5", "messages_4x4.npz")
@@ -365,6 +388,8 @@ def main():
             row["blind"], row["failsafe"] = args.blind, int(args.failsafe)
         if args.ablate_messages:
             row["ablate_messages"] = 1
+        if NOCOMM:
+            row["no_comm"] = 1
         if args.ambulances:
             row["ambulances"], row["preempt"] = 1, int(args.preempt)
         write_row(row)

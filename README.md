@@ -55,7 +55,11 @@ python scripts/train_4x4.py --cond B1 --reward local --train-scenarios uniform,p
 python scripts/train_4x4.py --cond B2 --reward local --train-scenarios uniform,peak,asym
 python scripts/train_4x4.py --cond E1 --reward local --grid 2x2
 ```
-Checkpoints go to `MARL_checkpoints/<grid>/<cond>_local_mg5/`. Add `--resume` to continue an interrupted run.
+Checkpoints go to `MARL_checkpoints/<grid>/<cond>_local_mg5/`. Add `--resume` to continue an interrupted run. Training seeds 1 and 2 (E1 and B1, to check that results are not one lucky run): add `--seed 1` or `--seed 2` and `--out .../E1_local_mg5_seed1`.
+
+**No-communication control:** `python scripts/train_4x4.py --cond E1 --no-comm --reward local --train-scenarios uniform,peak,asym` trains E1's exact network, loss (the message-diversity penalty) and settings with the neighbour message replaced by zeros, so communication is the only difference to E1 (`env/comm_model.py`, `E1NoCommModel`). It saves to `.../E1nocomm_local_mg5/`, and `run_info.json` records `"no_comm": true`. Every script reads that flag from the checkpoint itself, so the control can never be evaluated with messages; evaluations of it need an explicit `--out` and are labelled `E1_nocomm`. Check: `python tests/test_nocomm.py`.
+
+**Trained models in this repository:** `checkpoints/4x4/<run>/checkpoints/ckpt_000977` with its `run_info.json` (a few hundred KB in total), for example `--ckpt checkpoints/4x4/E1_local_mg5/checkpoints/ckpt_000977`. Evaluated from here, they give exactly the published results.
 
 **3. Evaluation** (seeds 0 to 9, scenarios uniform, peak and asym). One run per controller and mode, for example:
 ```
