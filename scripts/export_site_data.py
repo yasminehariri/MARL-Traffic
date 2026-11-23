@@ -156,29 +156,32 @@ def _pair(a, b, **keys):
 
 
 def comparisons(ep):
-    """E1 (training seed 0) against every other controller under the same conditions, paired by traffic seed.
-    Plus, once the runs exist, E1 under sensor failure with its real messages against E1 with its messages
-    replaced by their average (other = "E1_ablated", variant = "failure")."""
+    """E1 against every other controller under the same conditions and the same training seed, paired by
+    traffic seed. Training seed 0: every controller (B1, B2, baselines, the no-communication control
+    E1_nocomm), plus E1 under sensor failure with its real messages against E1 with its messages replaced by
+    their average (other = "E1_ablated", variant = "failure"). Training seeds 1 and 2: E1 against B1 (the only
+    other controller trained more than once). Every row has train_seed."""
     out = []
-    e1 = ep[(ep.controller == "E1") & (ep.train_seed == 0)]
-    for (exp, var, grid, mode, sc), a in e1.groupby(["experiment", "variant", "grid", "mode", "scenario"]):
-        if var == "failure_ablated":
-            continue
-        same = ep[(ep.experiment == exp) & (ep.variant == var) & (ep.grid == grid) & (ep.scenario == sc)
-                  & (ep.train_seed == 0) & (ep.controller != "E1") & ep["mode"].isin([mode, "none"])]
-        a = a.set_index("seed")["true_delay"]
-        for other, b in same.groupby("controller"):
-            r = _pair(a, b.set_index("seed")["true_delay"], experiment=exp, variant=var, grid=grid, mode=mode,
-                      scenario=sc, other=other)
-            if r:
-                out.append(r)
-        if var == "failure":
-            abl = e1[(e1.experiment == exp) & (e1.variant == "failure_ablated") & (e1.grid == grid)
-                     & (e1["mode"] == mode) & (e1.scenario == sc)]
-            r = _pair(a, abl.set_index("seed")["true_delay"], experiment=exp, variant=var, grid=grid, mode=mode,
-                      scenario=sc, other="E1_ablated") if len(abl) else None
-            if r:
-                out.append(r)
+    for ts in sorted(ep.train_seed.unique()):
+        e1 = ep[(ep.controller == "E1") & (ep.train_seed == ts)]
+        for (exp, var, grid, mode, sc), a in e1.groupby(["experiment", "variant", "grid", "mode", "scenario"]):
+            if var == "failure_ablated":
+                continue
+            same = ep[(ep.experiment == exp) & (ep.variant == var) & (ep.grid == grid) & (ep.scenario == sc)
+                      & (ep.train_seed == ts) & (ep.controller != "E1") & ep["mode"].isin([mode, "none"])]
+            a = a.set_index("seed")["true_delay"]
+            for other, b in same.groupby("controller"):
+                r = _pair(a, b.set_index("seed")["true_delay"], experiment=exp, variant=var, grid=grid, mode=mode,
+                          scenario=sc, train_seed=int(ts), other=other)
+                if r:
+                    out.append(r)
+            if var == "failure":
+                abl = e1[(e1.experiment == exp) & (e1.variant == "failure_ablated") & (e1.grid == grid)
+                         & (e1["mode"] == mode) & (e1.scenario == sc)]
+                r = _pair(a, abl.set_index("seed")["true_delay"], experiment=exp, variant=var, grid=grid, mode=mode,
+                          scenario=sc, train_seed=int(ts), other="E1_ablated") if len(abl) else None
+                if r:
+                    out.append(r)
     return out
 
 

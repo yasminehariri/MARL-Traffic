@@ -54,6 +54,12 @@ const EXPECT = {
   'Sensor failure with fixed-time fallback (true delay, s/vehicle)': {
     experiment: 'sensor_failure', variant: 'failure_failsafe', cols: ['uniform', 'peak', 'asym'],
     rows: [['E1', 'greedy', [35.3, 93.6, 36.6]], ['B1', 'greedy', [31.2, 648.7, 29.0]], ['B2', 'greedy', [52.2, 840.1, 223.6]]] },
+  'No-communication control, normal traffic (true delay, s/vehicle)': {
+    experiment: 'normal', variant: 'standard', cols: ['uniform', 'peak', 'asym'],
+    rows: [['E1_nocomm', 'greedy', [27.0, 86.4, 26.2]], ['E1_nocomm', 'sampled', [31.3, 89.8, 29.2]]] },
+  'No-communication control, sensor failure (true delay, s/vehicle)': {
+    experiment: 'sensor_failure', variant: 'failure', cols: ['uniform', 'peak', 'asym'],
+    rows: [['E1_nocomm', 'greedy', [597.8, 935.0, 355.4]], ['E1_nocomm', 'sampled', [52.9, 196.9, 42.9]]] },
 };
 
 const out = document.getElementById('out');

@@ -270,6 +270,7 @@
       <a href="#ambulance">Ambulance</a>
       <a href="#transfer">Generalisation</a>
       <a href="#messages">Messages</a>
+      <a href="#attribution">Is it the messages?</a>
       <a href="#training">Reliability</a>
       <a href="#replay">3D replay</a>
       <a href="#team">Team</a>
@@ -329,7 +330,7 @@
   <!-- NORMAL -->
   <section id="normal">
     <div class="kicker reveal">Results · normal traffic</div>
-    <h2 class="reveal">At rush hour, communication wins</h2>
+    <h2 class="reveal">At rush hour, E1 wins by a wide margin</h2>
     <p class="lead reveal">Average delay per vehicle across three traffic patterns. Lower is better. A log scale is used because peak-hour gridlocks reach ten to thirty times the light-traffic delays.</p>
     <div class="reveal">
       <div class="toggle" role="group" aria-label="Action mode">
@@ -384,8 +385,8 @@
   <section id="ambulance">
     <div class="kicker reveal">Priority · emergency vehicles</div>
     <h2 class="reveal">Clearing the way for an ambulance</h2>
-    <p class="lead reveal">A city controller is not only about average waiting time. We mark one vehicle as an ambulance, and when it approaches a junction the agent can give its direction priority, so the lights turn green ahead of it and its lane clears before it arrives.</p>
-    <div class="ambroad reveal">
+    <p class="lead reveal">A city controller is not only about average waiting time. In every test episode, <b>11 ambulances</b> cross the city, one every 5 minutes, each passing at least 3 junctions. We ran every controller twice on exactly the same traffic and the same ambulances: once treating ambulances like any other car, and once with <b>signal priority</b>.</p>
+    <div class="ambroad reveal" aria-hidden="true">
       <div class="amb-lights">
         <span class="tl t1" style="left:28%"></span>
         <span class="tl t2" style="left:56%"></span>
@@ -404,11 +405,20 @@
     </div>
     <div class="cols two reveal" style="margin-top:16px">
       <div>
-        <p>The lights on the ambulance's path switch to green just before it reaches them, instead of making it stop and wait in the queue. This is a safety behaviour on top of the normal traffic optimisation, not a replacement for it.</p>
+        <p><b>How priority works.</b> When an ambulance is on the road leading into a junction, that light turns green for the ambulance's direction; if several are close, the nearest is served first. This is a simple rule added on top of each controller, not something the agents learned, and it never shortens the 3-second yellow or the 5-second minimum green.</p>
       </div>
       <div>
-        <p>The agent keeps running the whole network at the same time, so giving one vehicle priority should cost the other directions as little as possible. The full comparison, with exact numbers for the ambulance's travel time and the effect on everyone else, is being finalised with the latest results and will be added here.</p>
+        <p><b>What we measure.</b> The ambulance's travel time, from when it was due to leave until it arrives (an ambulance still on the road when the hour ends counts with its time so far), and the delay of all the other vehicles, to see what priority costs everyone else.</p>
       </div>
+    </div>
+    <figure class="reveal"><div class="fig" id="figAmb"></div>
+      <figcaption>Mean ambulance travel time without and with priority. 10 traffic seeds per pattern, 11 ambulances each, greedy mode. Lower is better.</figcaption></figure>
+    <div class="sentences reveal" id="ambSentences"></div>
+    <details class="reveal"><summary>Table view</summary><div class="fig" id="tabAmb"></div></details>
+    <div class="reveal" style="margin-top:20px">
+      <iframe class="viewer" loading="lazy" title="3D replay: E1 with ambulances, without and with signal priority"
+        src="../demo/index.html?run=E1_amb&vs=E1_amb_preempt&cam=aerial&ui=0&q=fast"></iframe>
+      <p class="muted viewer-note">E1 without priority (left) and with priority (right): the same traffic and the same ambulances. Lights giving priority are tagged in the viewer.</p>
     </div>
   </section>
 
@@ -443,6 +453,16 @@
     <p class="note reveal" id="ablationNote"></p>
   </section>
 
+  <!-- ATTRIBUTION: NO-COMMUNICATION CONTROL -->
+  <section id="attribution">
+    <div class="kicker reveal">Honest test · attribution</div>
+    <h2 class="reveal">Is it the messages?</h2>
+    <p class="lead reveal">E1 differs from B1 in two ways: it can talk to its neighbours, and it uses a different, much smaller network trained with an extra loss. To separate the two, we trained a <b>control</b>: E1's exact network and training, with every incoming message replaced by zeros, so it can never communicate.</p>
+    <figure class="reveal"><div class="fig" id="figAttr"></div>
+      <figcaption>E1, the no-communication control and B1, in normal traffic and with junction B1's sensors broken. Mean over 10 traffic seeds, greedy mode. Lower is better.</figcaption></figure>
+    <div class="sentences reveal" id="attrSentences"></div>
+  </section>
+
   <!-- RELIABILITY -->
   <section id="training">
     <div class="kicker reveal">Reliability</div>
@@ -450,6 +470,10 @@
     <p class="lead reveal">We trained E1 and B1 three times each (seeds 0, 1, 2) to show the headline is not luck. E1 lands in the same place every time; B1 does not.</p>
     <figure class="reveal"><div class="fig" id="figSeeds"></div>
       <figcaption>Peak-hour delay for each of the three training runs, greedy mode. Lower is better. E1 stays tight; B1 swings widely.</figcaption></figure>
+    <h3 class="reveal" style="margin-top:30px">Every test, every training run</h3>
+    <p class="muted reveal">Each E1 run against the B1 run trained with the same seed, at peak hour, on the same traffic. Mean over 10 traffic seeds.</p>
+    <div class="fig reveal" id="tabSeeds"></div>
+    <div class="sentences reveal" id="seedSentences"></div>
     <h3 class="reveal" style="margin-top:30px">Learning curves</h3>
     <p class="muted reveal">Reward per traffic light during training (higher is better). Every run climbs and settles; E1 ends highest.</p>
     <figure class="reveal"><div class="fig" id="figCurves"></div>
@@ -531,8 +555,8 @@ let MODE='greedy';
 
 /* controller cards */
 (function(){ const blurb={
-  E1:'Agents learn what to say to their neighbours — 8 numbers per message, invented, not designed.',
-  B1:'The same agents, but each junction sees only itself. No messages at all.',
+  E1:'Agents learn what to say to their neighbours: 8 numbers per message, invented, not designed.',
+  B1:'Same observations, reward and training as E1, a standard larger network, and no messages at all.',
   B2:'Neighbours share their raw queue lengths, a message format we designed by hand.',
   tuned:'No AI. A fixed cycle with 10-second greens, tuned by us.',
   fixed:'No AI. SUMO\'s default fixed-time cycle.',
@@ -545,7 +569,7 @@ let MODE='greedy';
 (function(){ const e1=one(D.summary,{experiment:'normal',controller:'E1',mode:'greedy',scenario:'peak'});
   const fx=one(D.summary,{experiment:'normal',controller:'fixed',mode:'none',scenario:'peak'});
   const c=one(D.comparisons,{experiment:'normal',variant:'standard',mode:'greedy',scenario:'peak',other:'B1'});
-  $('#headline').innerHTML=`At rush hour our learned-communication agents cut delay to <b>${fmt.delay(e1.true_delay_mean)} s</b> per vehicle, against <b>${fmt.delay(fx.true_delay_mean)} s</b> for a standard fixed-time controller — and <b>${fmt.pct(c.diff_pct)} lower</b> than the same agents with no messages, on all ${c.n} traffic seeds.`; })();
+  $('#headline').innerHTML=`At rush hour, our learned agents (E1) cut delay to <b>${fmt.delay(e1.true_delay_mean)} s</b> per vehicle, against <b>${fmt.delay(fx.true_delay_mean)} s</b> for a standard fixed-time controller and <b>${fmt.delay(c.other_mean)} s</b> for agents with no messages (B1): ${fmt.pct(c.diff_pct)} lower, on ${c.e1_better_seeds} of ${c.n} traffic seeds. <a href="#attribution">But is it the messages?</a>`; })();
 
 /* normal (mode-dependent) */
 function renderNormal(){ const el=$('#figNormal'); el.innerHTML='';
@@ -563,7 +587,7 @@ function renderNormal(){ const el=$('#figNormal'); el.innerHTML='';
   t.innerHTML=`<tr><th>Controller</th>${SCEN.map(s=>`<th>${s}</th>`).join('')}</tr>`+ORDER.map(id=>`<tr><td>${nameOf(D,id)}</td>${SCEN.map(s=>`<td>${fmt.delay(rows.find(r=>r.controller===id&&r.scenario===s)?.true_delay_mean)}</td>`).join('')}</tr>`).join('');
   tab.append(t);
   const box=$('#normalSentences'); box.innerHTML='';
-  for(const s of SCEN){ const c=D.comparisons.find(r=>r.experiment==='normal'&&r.variant==='standard'&&r.mode===MODE&&r.scenario===s&&r.other==='B1'); if(!c)continue;
+  for(const s of SCEN){ const c=D.comparisons.find(r=>r.experiment==='normal'&&r.variant==='standard'&&r.mode===MODE&&r.scenario===s&&r.other==='B1'&&r.train_seed===0); if(!c)continue;
     const better=c.diff_pct<0,sig=fmt.signif(c.wilcoxon_p);
     const txt=sig?`At <b>${s}</b>, E1 is <b>${fmt.pct(c.diff_pct)} ${better?'lower':'higher'}</b> than no-communication B1 (better on ${c.e1_better_seeds} of ${c.n} seeds, ${fmt.p(c.wilcoxon_p)}).`:`At <b>${s}</b>, E1 and B1 show no clear difference (${fmt.p(c.wilcoxon_p)}).`;
     const d=document.createElement('div'); d.innerHTML='• '+txt; box.append(d);} }
@@ -598,11 +622,42 @@ function renderDots(){ const el=$('#figDots'); el.innerHTML='';
     [F]:{domain:SCEN,label:null,axis:narrow?null:'top'},x:{domain:ctl,label:null},y:yDelay(),
     color:{domain:stateDom,range:[colorOf('E1'),colorOf('B1'),colorOf('tuned')],legend:true},
     marks:[...(narrow?[Plot.text(SCEN,{fy:d=>d,text:d=>d,frameAnchor:'top-left',dx:4,dy:4,fontWeight:700,fontSize:13,fill:'currentColor'})]:[]),
-      Plot.dot(rows,{[F]:'scenario',x:'controller',y:'true_delay_mean',fill:'state',r:5,stroke:SURF,strokeWidth:1.5,title:r=>`${nameOf(D,r.controller)} — ${r.state}\n${r.scenario}: ${fmt.delay(r.true_delay_mean)} s\nteleports/episode: ${r.teleports_mean}`,tip:true})]}));
+      Plot.dot(rows,{[F]:'scenario',x:'controller',y:'true_delay_mean',fill:'state',r:5,stroke:SURF,strokeWidth:1.5,title:r=>`${nameOf(D,r.controller)}, ${r.state}\n${r.scenario}: ${fmt.delay(r.true_delay_mean)} s\nteleports/episode: ${r.teleports_mean}`,tip:true})]}));
   const brk=one(D.summary,{experiment:'sensor_failure',variant:'failure',controller:'E1',mode:'greedy',scenario:'peak'});
   const fs=one(D.summary,{experiment:'sensor_failure',variant:'failure_failsafe',controller:'E1',mode:'greedy',scenario:'peak'});
   const nm=one(D.summary,{experiment:'normal',variant:'standard',controller:'E1',mode:'greedy',scenario:'peak'});
-  $('#failSentences').innerHTML=`<div>• A single broken junction hurts every learned controller: E1 at peak jumps from <b>${fmt.delay(nm.true_delay_mean)} s</b> to <b>${fmt.delay(brk.true_delay_mean)} s</b>.</div><div>• The fixed-time fallback brings it back to <b>${fmt.delay(fs.true_delay_mean)} s</b>, close to normal. Of the learned controllers, E1 degrades the least.</div>`; })();
+  const cmp=['greedy','sampled'].flatMap(mode=>['B1','B2'].flatMap(other=>pick(D.comparisons,{experiment:'sensor_failure',variant:'failure',mode,other})));
+  const wins=cmp.filter(c=>c.diff_pct<0&&fmt.signif(c.wilcoxon_p)), allSeeds=wins.filter(c=>c.e1_better_seeds===c.n);
+  const pk=one(D.comparisons,{experiment:'sensor_failure',variant:'failure',mode:'greedy',scenario:'peak',other:'B1'});
+  $('#failSentences').innerHTML=`<div>• A single broken junction hurts every learned controller: E1 at peak jumps from <b>${fmt.delay(nm.true_delay_mean)} s</b> to <b>${fmt.delay(brk.true_delay_mean)} s</b>.</div>`
+    +`<div>• Even with the broken junction, E1 stays ahead of the other two main learned controllers: lower than both B1 and B2 in <b>${wins.length} of ${cmp.length}</b> comparisons (3 traffic patterns, greedy and sampled), and better on every traffic seed in ${allSeeds.length} of them. At peak (greedy) it is <b>${fmt.pct(pk.diff_pct)} lower</b> than B1 (${fmt.p(pk.wilcoxon_p)}).</div>`
+    +`<div>• The fixed-time fallback brings E1 back to <b>${fmt.delay(fs.true_delay_mean)} s</b> at peak, close to normal.</div>`; })();
+
+/* ambulance */
+(function(){ const el=$('#figAmb'), ctl=['E1','B1','B2','tuned'], ST=['No priority','With priority'];
+  const rows=[]; for(const r of pick(D.ambulance,{controller:ctl,scenario:SCEN})){
+    rows.push({controller:r.controller,scenario:r.scenario,state:ST[0],v:r.amb_travel_time_off,arr:r.amb_arrived_off,n:r.ambulances});
+    rows.push({controller:r.controller,scenario:r.scenario,state:ST[1],v:r.amb_travel_time_on,arr:r.amb_arrived_on,n:r.ambulances}); }
+  const narrow=el.clientWidth<600, F=narrow?'fy':'fx', SURF=surface();
+  el.append(Plot.plot({width:Math.min(el.clientWidth,1000),height:narrow?3*230:360,marginLeft:58,marginBottom:46,marginRight:16,
+    style:{background:'transparent',color:'currentColor',fontSize:'12px'},
+    [F]:{domain:SCEN,label:null,axis:narrow?null:'top'},x:{domain:ctl,label:null},
+    y:{...yDelay(),domain:[50,1500],ticks:[50,100,200,500,1000],label:'ambulance travel time (s)'},
+    color:{domain:ST,range:[colorOf('tuned'),colorOf('E1')],legend:true},
+    marks:[...(narrow?[Plot.text(SCEN,{fy:d=>d,text:d=>d,frameAnchor:'top-left',dx:4,dy:4,fontWeight:700,fontSize:13,fill:'currentColor'})]:[]),
+      Plot.dot(rows,{[F]:'scenario',x:'controller',y:'v',fill:'state',r:5,stroke:SURF,strokeWidth:1.5,title:r=>`${nameOf(D,r.controller)}, ${r.state.toLowerCase()}\n${r.scenario}: ${fmt.delay(r.v)} s\narrived: ${r.arr} of ${r.n}`,tip:true})]}));
+  const tab=$('#tabAmb'), t=document.createElement('table');
+  t.innerHTML='<tr><th>Controller</th><th>Pattern</th><th>No priority (s)</th><th>With priority (s)</th><th>Arrived (no / with)</th><th>Other traffic delay</th></tr>'
+    +pick(D.ambulance,{controller:ctl,scenario:SCEN}).map(r=>`<tr><td>${nameOf(D,r.controller)}</td><td>${r.scenario}</td><td>${fmt.delay(r.amb_travel_time_off)}</td><td>${fmt.delay(r.amb_travel_time_on)}</td><td>${r.amb_arrived_off} / ${r.amb_arrived_on} of ${r.ambulances}</td><td>${fmt.delay(r.other_delay_off)} → ${fmt.delay(r.other_delay_on)} s</td></tr>`).join('');
+  tab.append(t);
+  const e=one(D.ambulance,{controller:'E1',scenario:'all'}), eP=one(D.ambulance,{controller:'E1',scenario:'peak'}), bP=one(D.ambulance,{controller:'B1',scenario:'peak'});
+  const seedsE=pick(D.ambulance,{controller:'E1',scenario:'peak',train_seed:[0,1,2]}).map(r=>r.amb_travel_time_on), seedsB=pick(D.ambulance,{controller:'B1',scenario:'peak',train_seed:[0,1,2]}).map(r=>r.amb_travel_time_on);
+  const rng=a=>`${fmt.delay(Math.min(...a))} to ${fmt.delay(Math.max(...a))} s`;
+  const od=e.other_delay_change_pct;
+  $('#ambSentences').innerHTML=`<div>• With priority, E1's ambulances take <b>${fmt.delay(e.amb_travel_time_on)} s</b> on average instead of <b>${fmt.delay(e.amb_travel_time_off)} s</b> (${fmt.pct(e.amb_travel_time_change_pct)} less), stop ${e.amb_stops_on.toFixed(1)} times per trip instead of ${e.amb_stops_off.toFixed(1)}, and all ${e.amb_arrived_on} of ${e.ambulances} arrive.</div>`
+    +`<div>• Priority costs the other traffic almost nothing: with E1, their delay ${od>0?'rises':'falls'} by ${Math.abs(od).toFixed(1)}% (${fmt.signif(e.other_delay_p)?fmt.p(e.other_delay_p):'not significant, '+fmt.p(e.other_delay_p)}).</div>`
+    +`<div>• At peak, E1's ambulances are faster than B1's both without priority (<b>${fmt.delay(eP.amb_travel_time_off)} s</b> vs ${fmt.delay(bP.amb_travel_time_off)} s) and with it (<b>${fmt.delay(eP.amb_travel_time_on)} s</b> vs ${fmt.delay(bP.amb_travel_time_on)} s). In B1's peak gridlocks only ${bP.amb_arrived_on} of ${bP.ambulances} arrive even with priority.</div>`
+    +`<div>• The same holds for the models retrained with seeds 1 and 2: at peak with priority, E1's ambulances take ${rng(seedsE)} across the three training runs, B1's ${rng(seedsB)}.</div>`; })();
 
 /* transfer */
 (function(){ const el=$('#figTransfer');
@@ -617,11 +672,11 @@ function renderDots(){ const el=$('#figDots'); el.innerHTML='';
       Plot.dot(rows,{[F]:'scenario',x:'kind',y:'true_delay_mean',fill:'kind',r:5,stroke:SURF,strokeWidth:2,title:r=>`${r.kind}\n${r.scenario}: ${fmt.delay(r.true_delay_mean)} s`,tip:true})]}));
   const t=one(D.summary,{experiment:'transfer',controller:'E1_from2x2',mode:'greedy',scenario:'peak'});
   const fx=one(D.summary,{experiment:'normal',controller:'fixed',mode:'none',scenario:'peak'});
-  $('#transferSentences').innerHTML=`<div>• At peak, E1 trained only on a 2×2 grid still reaches <b>${fmt.delay(t.true_delay_mean)} s</b> on the 4×4 city, far below fixed-time's <b>${fmt.delay(fx.true_delay_mean)} s</b> — with no retraining.</div>`; })();
+  $('#transferSentences').innerHTML=`<div>• At peak, E1 trained only on a 2×2 grid still reaches <b>${fmt.delay(t.true_delay_mean)} s</b> on the 4×4 city, far below fixed-time's <b>${fmt.delay(fx.true_delay_mean)} s</b>, with no retraining.</div>`; })();
 
 /* messages */
 (function(){ const R=D.messages.report;
-  $('#msgStats').innerHTML=[[`${Math.round(R.decode_phase_accuracy*100)}%`,`green direction decoded from the message (guessing: ${Math.round(R.phase_majority_baseline*100)}%)`],[`${R.decode_queue_total_r2.toFixed(2)}`,`R² for total queue — the message partly carries congestion`],[`8`,`numbers per message, all invented by the agents`]].map(([b,l])=>`<div class="card stat"><div class="big" data-countup>${b}</div><div class="lab">${l}</div></div>`).join('');
+  $('#msgStats').innerHTML=[[`${Math.round(R.decode_phase_accuracy*100)}%`,`green direction decoded from the message (guessing: ${Math.round(R.phase_majority_baseline*100)}%)`],[`${R.decode_queue_total_r2.toFixed(2)}`,`R² for total queue: the message partly carries congestion`],[`8`,`numbers per message, all invented by the agents`]].map(([b,l])=>`<div class="card stat"><div class="big" data-countup>${b}</div><div class="lab">${l}</div></div>`).join('');
   const el=$('#figTsne'), pts=D.messages.tsne.points, greens=['N','E','S','W'];
   el.append(Plot.plot({width:Math.min(el.clientWidth,520),height:360,marginLeft:10,marginBottom:10,marginRight:10,marginTop:10,
     style:{background:'transparent',color:'currentColor',fontSize:'12px'},x:{axis:null},y:{axis:null},
@@ -634,7 +689,36 @@ function renderDots(){ const el=$('#figDots'); el.innerHTML='';
     color:{type:'diverging',domain:[-1,1],scheme:'RdBu',legend:true,label:'correlation'},
     marks:[Plot.cell(cells,{x:'col',y:'row',fill:'v',inset:.5,title:d=>`${d.row} vs ${d.col}: ${d.v.toFixed(2)}`,tip:true})]}));
   const ab=D.messages.ablation_normal_traffic;
-  $('#ablationNote').innerHTML=`Honest limit: in normal traffic, replacing the messages with their average barely changes delay (${fmt.delay(ab.mean_normal)} s vs ${fmt.delay(ab.mean_ablated)} s, ${fmt.p(ab.wilcoxon_p)}). The messages are clearly informative, but the agents can mostly cope without them when nothing is broken. Whether the messages are what protect E1 under sensor failure is being tested now.`; })();
+  const abl=pick(D.comparisons,{experiment:'sensor_failure',variant:'failure',mode:'greedy',other:'E1_ablated'});
+  const ad=abl.map(c=>Math.abs(c.diff_pct)).sort((x,y)=>x-y);
+  const ablTxt=abl.length?` When junction B1 is blind, though, E1 with its real messages is <b>${Math.round(ad[0])} to ${Math.round(ad[ad.length-1])}% lower</b> than with averaged messages (greedy, ${Math.min(...abl.map(c=>c.e1_better_seeds))===10?'better on every seed':'better on '+Math.min(...abl.map(c=>c.e1_better_seeds))+' or more of 10 seeds'} in every pattern): the trained E1 does use what its neighbours tell it when its own information is missing.`:'';
+  $('#ablationNote').innerHTML=`Honest limit: in normal traffic, replacing the messages with their average barely changes delay (${fmt.delay(ab.mean_normal)} s vs ${fmt.delay(ab.mean_ablated)} s, ${fmt.p(ab.wilcoxon_p)}). The messages are clearly informative, but the agents can mostly cope without them when nothing is broken.${ablTxt}`; })();
+
+/* attribution: E1 vs the no-communication control */
+(function(){ const el=$('#figAttr'), ctl=['E1','E1_nocomm','B1'], ST=['Normal','Junction B1 blind'];
+  const rows=[]; for(const [st,exp,variant] of [[ST[0],'normal','standard'],[ST[1],'sensor_failure','failure']])
+    for(const r of pick(D.summary,{experiment:exp,variant,mode:'greedy',controller:ctl})) rows.push({...r,state:st});
+  if(!rows.some(r=>r.controller==='E1_nocomm')){ $('#attribution').style.display='none'; return; }
+  const short=id=>id==='E1_nocomm'?'Control':id, narrow=el.clientWidth<600, F=narrow?'fy':'fx', SURF=surface();
+  el.append(Plot.plot({width:Math.min(el.clientWidth,1000),height:narrow?3*230:360,marginLeft:58,marginBottom:46,marginRight:16,
+    style:{background:'transparent',color:'currentColor',fontSize:'12px'},
+    [F]:{domain:SCEN,label:null,axis:narrow?null:'top'},x:{domain:ctl,label:null,tickFormat:short},y:yDelay(),
+    color:{domain:ST,range:[colorOf('E1'),colorOf('B1')],legend:true},
+    marks:[...(narrow?[Plot.text(SCEN,{fy:d=>d,text:d=>d,frameAnchor:'top-left',dx:4,dy:4,fontWeight:700,fontSize:13,fill:'currentColor'})]:[]),
+      Plot.dot(rows,{[F]:'scenario',x:'controller',y:'true_delay_mean',fill:'state',r:5,stroke:SURF,strokeWidth:1.5,title:r=>`${nameOf(D,r.controller)}, ${r.state.toLowerCase()}\n${r.scenario}: ${fmt.delay(r.true_delay_mean)} s\nteleports/episode: ${r.teleports_mean}`,tip:true})]}));
+  const cmp=(exp,variant,mode)=>SCEN.map(sc=>D.comparisons.find(r=>r.experiment===exp&&r.variant===variant&&r.mode===mode&&r.scenario===sc&&r.other==='E1_nocomm'&&r.train_seed===0)).filter(Boolean);
+  const tally=c=>({ctrl:c.filter(r=>r.diff_pct>0&&fmt.signif(r.wilcoxon_p)).length, e1:c.filter(r=>r.diff_pct<0&&fmt.signif(r.wilcoxon_p)).length, n:c.length});
+  const list=c=>c.map(r=>`${r.scenario} ${fmt.delay(r.other_mean)} vs ${fmt.delay(r.e1_mean)} s`).join(', ');
+  const line=(label,c)=>{ const t=tally(c); return `<div>• <b>${label}:</b> the control is significantly lower than E1 in ${t.ctrl} of ${t.n} traffic patterns, E1 lower in ${t.e1} (control vs E1: ${list(c)}).</div>`; };
+  const nG=cmp('normal','standard','greedy'), nS=cmp('normal','standard','sampled'), fG=cmp('sensor_failure','failure','greedy'), fS=cmp('sensor_failure','failure','sampled');
+  let html=''; for(const [l,c] of [['Normal traffic, greedy',nG],['Normal traffic, sampled',nS],['Junction B1 blind, greedy',fG],['Junction B1 blind, sampled',fS]]) if(c.length) html+=line(l,c);
+  const tn=tally([...nG,...nS]), tg=tally(fG), ts=tally(fS);
+  let concl='';
+  if(tn.n && tn.e1===0) concl+=`In normal traffic, communication brings no gain: E1's advantage over B1 comes from its network and training, not from the messages. `;
+  const modeTxt=(t,m)=>!t.n?'':t.e1===t.n?`in ${m} mode E1 beats the control in every pattern (the messages help)`:t.ctrl===t.n?`in ${m} mode the control is better in every pattern`:`in ${m} mode E1 beats the control in ${t.e1} of ${t.n} patterns`;
+  const fm=[modeTxt(tg,'greedy'),modeTxt(ts,'sampled')].filter(Boolean);
+  if(fm.length) concl+=`With a broken junction, ${fm.join(', while ')}.`;
+  $('#attrSentences').innerHTML=html+(concl?`<p class="note">${concl}</p>`:''); })();
 
 /* reliability */
 (function(){ const el=$('#figSeeds');
@@ -644,12 +728,31 @@ function renderDots(){ const el=$('#figDots'); el.innerHTML='';
     x:{domain:[0,1,2],label:'training seed',tickFormat:d=>'seed '+d},y:{...yDelay(),label:'peak delay (s)'},color:{domain:['E1','B1'],range:['E1','B1'].map(colorOf),legend:true},
     marks:[Plot.dot(rows,{x:'train_seed',y:'true_delay_mean',fill:'controller',r:7,stroke:SURF,strokeWidth:2,title:r=>`${nameOf(D,r.controller)} · seed ${r.train_seed}\npeak: ${fmt.delay(r.true_delay_mean)} s`,tip:true})]})); })();
 
+/* every test, every training seed: E1 vs B1 */
+(function(){ const T=[['Normal traffic, greedy','normal','standard','greedy'],['Normal traffic, sampled','normal','standard','sampled'],
+    ['Sensor failure, greedy','sensor_failure','failure','greedy'],['Ambulances, other traffic, greedy','ambulance','no_priority','greedy']];
+  const S=[0,1,2], cell=c=>!c?'–':`${fmt.delay(c.e1_mean)} vs ${fmt.delay(c.other_mean)}${fmt.signif(c.wilcoxon_p)&&c.diff_pct<0?' ✓':''}`;
+  const get=(exp,variant,mode,sc,ts)=>D.comparisons.find(r=>r.experiment===exp&&r.variant===variant&&r.mode===mode&&r.scenario===sc&&r.other==='B1'&&r.train_seed===ts);
+  const amb=ts=>pick(D.ambulance,{controller:['E1','B1'],scenario:'peak',train_seed:ts});
+  let html='<table><tr><th>Peak hour: E1 vs B1</th>'+S.map(t=>`<th>seed ${t}</th>`).join('')+'</tr>';
+  for(const [label,exp,variant,mode] of T) html+=`<tr><td>${label} (s)</td>`+S.map(t=>`<td>${cell(get(exp,variant,mode,'peak',t))}</td>`).join('')+'</tr>';
+  html+='<tr><td>Ambulance travel time, with priority (s)</td>'+S.map(t=>{ const r=amb(t), e=r.find(x=>x.controller==='E1'), b=r.find(x=>x.controller==='B1'); return `<td>${e&&b?fmt.delay(e.amb_travel_time_on)+' vs '+fmt.delay(b.amb_travel_time_on):'–'}</td>`; }).join('')+'</tr></table>';
+  $('#tabSeeds').innerHTML=html;
+  const peak=[], light=[];
+  for(const [,exp,variant,mode] of T) for(const t of S){ const c=get(exp,variant,mode,'peak',t); if(c) peak.push(c);
+    for(const sc of ['uniform','asym']){ const l=get(exp,variant,mode,sc,t); if(l&&exp==='normal') light.push(l); } }
+  const pWins=peak.filter(c=>c.diff_pct<0&&fmt.signif(c.wilcoxon_p)).length;
+  const gap=a=>{ const d=a.map(c=>c.e1_mean-c.other_mean); return d.length?`${Math.min(...d).toFixed(1)} to ${Math.max(...d).toFixed(1)} s`:'–'; };
+  const lB1=light.filter(c=>c.diff_pct>0&&fmt.signif(c.wilcoxon_p)).length, lE1=light.filter(c=>c.diff_pct<0&&fmt.signif(c.wilcoxon_p)).length;
+  $('#seedSentences').innerHTML=`<div>• At peak, E1 is significantly lower than B1 in <b>${pWins} of ${peak.length}</b> test and training-seed combinations (✓ in the table).</div>`
+    +`<div>• In light traffic (uniform and asym, normal conditions) the honest picture is the opposite: B1 is significantly lower in ${lB1} of ${light.length} combinations, E1 in ${lE1}, the rest are ties. There, B1 is ahead by ${gap(light.filter(c=>c.diff_pct>0&&fmt.signif(c.wilcoxon_p)))} per vehicle.</div>`; })();
+
 /* learning curves */
 (function(){ const el=$('#figCurves'), want=['4x4_E1','4x4_E1_seed1','4x4_E1_seed2','4x4_B1','4x4_B1_seed1','4x4_B1_seed2'];
   const runs=D.training.filter(t=>want.includes(t.run)), pts=[];
   for(const t of runs) for(let i=0;i<t.steps.length;i++) pts.push({controller:t.controller,train_seed:t.train_seed,step:t.steps[i],ret:t.return_per_agent_smoothed[i]});
   const narrow=el.clientWidth<600;
-  el.append(Plot.plot({width:Math.min(el.clientWidth,1000),height:narrow?2*230:320,marginLeft:70,marginBottom:44,marginRight:16,
+  el.append(Plot.plot({width:Math.min(el.clientWidth,1000),height:narrow?2*230:320,marginLeft:88,marginBottom:44,marginRight:16,
     style:{background:'transparent',color:'currentColor',fontSize:'12px'},
     [narrow?'fy':'fx']:{domain:['E1','B1'],label:null,tickFormat:id=>nameOf(D,id).split(':')[0]},x:{label:'training steps',tickFormat:d=>(d/1000)+'k'},y:{label:'reward per light',grid:true},
     color:{domain:[0,1,2],range:['#ff6a1a','#2a78d6','#1baf7a'],legend:true,label:'training seed',tickFormat:d=>'seed '+d},
@@ -679,7 +782,7 @@ if(!reduce){ const io2=new IntersectionObserver((es)=>es.forEach(e=>{ if(e.isInt
 
 /* floating buddy + active nav link */
 const buddy=$('#buddy'), bubble=$('#bubble');
-const buddyMsgs={problem:'16 lights, 16 little minds.',controllers:'Meet the line-up.',normal:'Here is our big win.',surge:'Even when it gets extreme...',failure:'What if a light goes blind?',ambulance:'I clear the way for the ambulance!',transfer:'Trained small, runs big!',messages:'This is my secret language.',training:'Reliable every single time.',replay:'Watch me work in 3D!',team:'Thanks for visiting!'};
+const buddyMsgs={problem:'16 lights, 16 little minds.',controllers:'Meet the line-up.',normal:'Here is our big win.',surge:'Even when it gets extreme...',failure:'What if a light goes blind?',ambulance:'I clear the way for the ambulance!',transfer:'Trained small, runs big!',messages:'This is my secret language.',attribution:'But do I really need it?',training:'Reliable every single time.',replay:'Watch me work in 3D!',team:'Thanks for visiting!'};
 addEventListener('scroll',()=>{ buddy.classList.toggle('show', window.scrollY>500); },{passive:true});
 const links=[...document.querySelectorAll('#navLinks a')];
 const byId=Object.fromEntries(links.map(a=>[a.getAttribute('href').slice(1),a]));

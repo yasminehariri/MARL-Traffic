@@ -17,7 +17,10 @@ INK, INK2, GRID, SURF = "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb"
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10, "axes.edgecolor": GRID, "axes.labelcolor": INK2,
                      "xtick.color": INK2, "ytick.color": INK2, "figure.facecolor": SURF, "axes.facecolor": SURF})
 RUNS = {"4x4_E1": ("E1 learned comm, 4x4", "#2a78d6", 16), "4x4_B1": ("B1 no comm, 4x4", "#eb6834", 16),
-        "4x4_B2": ("B2 hand-crafted comm, 4x4", "#1baf7a", 16), "2x2_E1": ("E1 learned comm, 2x2", "#86b3ea", 4)}
+        "4x4_B2": ("B2 hand-crafted comm, 4x4", "#1baf7a", 16), "2x2_E1": ("E1 learned comm, 2x2", "#86b3ea", 4),
+        "4x4_E1nocomm": ("E1 control, no comm, 4x4", "#7f7f7f", 16)}
+# extra training seeds: in the table only (the curves are on the website, site/data/training.json)
+TABLE_ONLY = {"4x4_E1_seed1": 16, "4x4_E1_seed2": 16, "4x4_B1_seed1": 16, "4x4_B1_seed2": 16}
 
 def load(run):
     d = pd.read_csv(os.path.join(args.dir, f"progress_{run}.csv"))
@@ -26,16 +29,20 @@ def load(run):
 
 rows = []
 fig, axes = plt.subplots(1, 2, figsize=(13, 4.6))
-for run, (name, col, n_agents) in RUNS.items():
+for run, (name, col, n_agents) in list(RUNS.items()) + [(r, (None, None, n)) for r, n in TABLE_ONLY.items()]:
+    if not os.path.exists(os.path.join(args.dir, f"progress_{run}.csv")):
+        print("skipped (no log):", run)
+        continue
     d, resumes = load(run)
     v = d.dropna(subset=["episode_return_mean"])
     x = v.total_steps / 1000
     y = (v.episode_return_mean / n_agents / 1e3).rolling(20, min_periods=1).mean()
-    if run.startswith("4x4"):
-        axes[0].plot(x, y, color=col, lw=2, label=name)
     frac = (y - y.iloc[0]) / (y.iloc[-1] - y.iloc[0])
-    axes[1].plot(x, frac, color=col, lw=2, label=name)
-    for r in resumes:   # RLlib's reward average restarts after a resume, so the curve can jump there
+    if name and run.startswith("4x4"):
+        axes[0].plot(x, y, color=col, lw=2, label=name)
+    if name:
+        axes[1].plot(x, frac, color=col, lw=2, label=name)
+    for r in (resumes if name else []):   # RLlib's reward average restarts after a resume, so the curve can jump there
         for ax in axes:
             ax.axvline(r / 1000, color=col, ls=":", lw=1.2)
         axes[0].annotate(f"{run.split('_')[1]} run resumed here:\nreward average restarts", xy=(r / 1000, y.min() * 0.52),

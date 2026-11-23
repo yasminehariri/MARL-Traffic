@@ -11,7 +11,9 @@ Sixteen traffic lights on a 4x4 SUMO grid are each controlled by a reinforcement
 | B2 | MARL, hand-crafted communication (neighbours share their queue lengths) |
 | E1 | MARL, learned communication (CommNet-style continuous messages) |
 
-**Final results and their interpretation:** [`results/mg5/final/README.md`](results/mg5/final/README.md). It covers RQ1 to RQ5, all tables, the statistics and the figures.
+E1 and B1 were trained with three training seeds each, and a no-communication control of E1 (`E1_nocomm`: E1's network and training, with the neighbour messages replaced by zeros) isolates the effect of communication.
+
+**Final results and their interpretation:** [`results/mg5/final/README.md`](results/mg5/final/README.md). It covers RQ1 to RQ5, the three training seeds, the sensor-failure and ambulance tests, the no-communication control, all tables, the statistics and the figures.
 
 ## Repository layout
 
@@ -70,7 +72,7 @@ python scripts/evaluate_4x4.py --cond fixed --scenarios surge --out MARL_results
 python scripts/evaluate_4x4.py --cond E1 --ckpt <2x2 E1 checkpoint> --label E1_from2x2 --out MARL_results/4x4_eval_mg5_E1_from2x2.csv
 python scripts/evaluate_4x4.py --cond E1 --ckpt <2x2 E1 checkpoint> --grid 2x2 --out MARL_results/2x2_eval_mg5_E1.csv
 ```
-The same pattern applies for B1, B2, tuned and random. The minimum green is read from each checkpoint automatically. Greedy evaluation is deterministic, and sampled (`--explore`) evaluation is seeded per episode, so reruns give identical numbers.
+The same pattern applies for B1, B2, tuned and random. The minimum green is read from each checkpoint automatically. Greedy evaluation is deterministic: run from a fresh clone with the checkpoints in this repo, every greedy result we checked is identical to the published one, digit for digit (`results/mg5/final/reproducibility/`). Sampled (`--explore`) evaluation is seeded per episode, so it repeats exactly with the same software; with a different PyTorch version the random draws change, and single episodes can differ by a few percent.
 
 **4. Message analysis (RQ2):**
 ```
