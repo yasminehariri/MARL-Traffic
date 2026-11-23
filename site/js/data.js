@@ -56,6 +56,9 @@ export const COLORS = {
   light: { E1: '#2a78d6', B1: '#eb6834', B2: '#1baf7a', tuned: '#eda100', fixed: '#e87ba4', random: '#6250d6', E1_from2x2: '#008300' },
   dark:  { E1: '#3987e5', B1: '#d95926', B2: '#199e70', tuned: '#c98500', fixed: '#d55181', random: '#9085e9', E1_from2x2: '#0ca30c' },
 };
-export const colorOf = id => COLORS[matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'][id] || '#888';
+/** Current theme: the saved toggle choice (data-theme on <html>) wins over the OS setting. */
+export const currentTheme = () => document.documentElement.getAttribute('data-theme')
+  || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+export const colorOf = id => COLORS[currentTheme()][id] || '#888';
 /** Order controllers are shown in, everywhere. */
 export const ORDER = ['E1', 'B1', 'B2', 'tuned', 'fixed', 'random'];
