@@ -1,5 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Traffic Twin 4×4</title>
+<link rel="icon" type="image/png" href="../site/assets/siggy.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
@@ -1007,7 +1008,8 @@ function renderHalf(composerX, x, w, run) {
 }
 let sparkTick = 0;
 function frame(now, external = false) {
-  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  // rAF timestamps can be slightly earlier than the performance.now() stored in `last`; never step time backwards
+  const dt = Math.max(0, Math.min(0.1, (now - last) / 1000)); last = now;
   if (!RENDER_MODE) { perfNow += dt; if (playing) simT += dt * speed; }
   const run = runs[curRun]; if (!run) return external ? null : requestAnimationFrame(frame);
   const n = run.frames.length - 1; if (simT > n) simT = 0;
