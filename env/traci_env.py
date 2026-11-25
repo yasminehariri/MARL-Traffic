@@ -139,7 +139,10 @@ class TraCIEnv:
         self.current_route_file = route_file
         if traci.isLoaded():
             traci.close()
-        cmd = ["sumo", "-c", SUMO_CFG, "--tripinfo-output.write-unfinished"]
+        # MARL_SUMO_BINARY=sumo-gui and MARL_SUMO_EXTRA (extra SUMO options) are used only by the video
+        # recorder (scripts/record_demo_4x4.py --video); they change what is displayed, never the simulation
+        cmd = [os.environ.get("MARL_SUMO_BINARY", "sumo"), "-c", SUMO_CFG, "--tripinfo-output.write-unfinished"]
+        cmd += os.environ.get("MARL_SUMO_EXTRA", "").split()
         if route_file:
             cmd += ["--route-files", route_file]
         traci.start(cmd)

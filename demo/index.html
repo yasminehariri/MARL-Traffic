@@ -1,6 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Traffic Twin 4×4</title>
-<link rel="icon" type="image/png" href="../site/assets/siggy.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
@@ -63,6 +62,8 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 #loading .t { font-size: 20px; font-weight: 700; }
 #loading .s { font-family: var(--mono); font-size: 12px; color: var(--ink-2); margin-top: 8px; }
 #note { font-size: 11px; color: var(--amber); }
+#simClock { margin-top: 8px; font-family: var(--mono); font-size: 15px; font-weight: 700; color: #fff; letter-spacing: .04em; }
+#simClock:empty { display: none; }
 #failLine { margin-top: 6px; font-family: var(--mono); font-size: 11px; color: var(--stop); letter-spacing: .04em; text-transform: uppercase; }
 /* ?ui=0 hides every panel (for embedding in another page); ?dock=0 hides only the playback bar */
 body.ui-none #brand, body.ui-none #stats, body.ui-none #dock, body.ui-none #split-labels { display: none !important; }
@@ -87,6 +88,7 @@ body.dock-none #dock { display: none !important; }
   <p>Replay of a real simulation: 16 traffic lights, each run by its own learning agent. Every vehicle, light change and queue is taken from SUMO, second by second.</p>
   <div class="scene" id="sceneLine">Peak hour · evaluation seed 0</div>
   <div id="failLine" hidden></div>
+  <div id="simClock"></div>
 </div>
 
 <div id="stats" class="panel">
@@ -134,6 +136,8 @@ body.dock-none #dock { display: none !important; }
     <span class="sep"></span>
     <span class="lbl">Quality</span>
     <button data-q="high" aria-pressed="true">High</button><button data-q="fast">Fast</button>
+    <span class="sep"></span>
+    <button id="recBtn" aria-pressed="false" title="Record this tab to a video file (Chrome or Edge: choose this tab when asked)">● Record video</button>
   </div>
 </div>
 
@@ -905,6 +909,7 @@ function setStats(run, fr) {
   const qm = Math.max(...fr.q), qi = fr.q.indexOf(qm);
   $('#sQ').innerHTML = `${qm}<small> at ${run.tls[qi]}</small>`;
   $('#clock').textContent = `min ${fmt(fr.t)} / ${fmt(run.start + run.duration)}`;
+  $('#simClock').textContent = `Simulation time ${fmt(fr.t)}`;
   $('#sceneLine').textContent = `${SCEN[run.scenario] || run.scenario} · evaluation seed ${run.seed}` + (run.min_green ? ` · ${run.min_green} s minimum green` : '');
   const fl = $('#failLine'); fl.hidden = !run.failed.size && !run.ambulances;
   if (run.failed.size) fl.textContent = `Sensor failure at junction ${[...run.failed.keys()].join(', ')}` + (run.failsafe ? ' · fixed-time fallback on' : ' · no fallback');
@@ -959,6 +964,30 @@ async function bindUI(avail, initial) {
   document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => setQuality(b.dataset.q));
   $('#scrub').oninput = e => { simT = e.target.value / 1000 * (runs[curRun].frames.length - 1); };
   $('#splitBtn').onclick = () => setCompare(split ? null : run2);
+  // Record video: records this tab exactly as it plays (the browser asks which tab to share) and saves
+  // the file when you press the button again. MP4 where the browser supports it (Chrome 126+), else WebM.
+  if (!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia && window.MediaRecorder)) $('#recBtn').hidden = true;
+  let recorder = null;
+  $('#recBtn').onclick = async () => {
+    if (recorder) { if (recorder.state !== 'inactive') recorder.stop(); return; }
+    let stream;
+    try { stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30, displaySurface: 'browser' }, audio: false, preferCurrentTab: true, selfBrowserSurface: 'include' }); }
+    catch (e) { return; }                                         // the person cancelled the share prompt
+    const type = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+    const chunks = [];
+    recorder = new MediaRecorder(stream, { ...(type ? { mimeType: type } : {}), videoBitsPerSecond: 12e6 });
+    recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    recorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(chunks, { type: type || 'video/webm' }), a = document.createElement('a');
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      a.href = URL.createObjectURL(blob); a.download = `traffic_twin_${curRun}${split ? '_vs_' + run2 : ''}_${stamp}.${type.includes('mp4') ? 'mp4' : 'webm'}`;
+      document.body.appendChild(a); a.click(); a.remove();
+      recorder = null; $('#recBtn').textContent = '● Record video'; $('#recBtn').setAttribute('aria-pressed', 'false');
+    };
+    stream.getVideoTracks()[0].onended = () => { if (recorder && recorder.state !== 'inactive') recorder.stop(); };
+    recorder.start(1000); $('#recBtn').textContent = '■ Stop and save'; $('#recBtn').setAttribute('aria-pressed', 'true');
+  };
   if (catalog.E1_dev && avail.length === 1) { $('#note').hidden = false; $('#note').textContent = 'Placeholder data: replace with the trained E1 run.'; }
   await applyParams();
   drawSpark();
@@ -1008,8 +1037,7 @@ function renderHalf(composerX, x, w, run) {
 }
 let sparkTick = 0;
 function frame(now, external = false) {
-  // rAF timestamps can be slightly earlier than the performance.now() stored in `last`; never step time backwards
-  const dt = Math.max(0, Math.min(0.1, (now - last) / 1000)); last = now;
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
   if (!RENDER_MODE) { perfNow += dt; if (playing) simT += dt * speed; }
   const run = runs[curRun]; if (!run) return external ? null : requestAnimationFrame(frame);
   const n = run.frames.length - 1; if (simT > n) simT = 0;

@@ -55,7 +55,22 @@ p.add_argument("--failsafe", action="store_true",
 p.add_argument("--ambulances", action="store_true",
                help="add the 11 ambulances of evaluate_4x4.py --ambulances (same schedule for this scenario and seed)")
 p.add_argument("--preempt", action="store_true", help="with --ambulances: signal preemption, as in evaluate_4x4.py")
+p.add_argument("--video", default=None,
+               help="also save an MP4 of the run as drawn by SUMO's own GUI (sumo-gui), one frame per simulated "
+                    "second of the recorded window (30 fps = 30x real time). Needs sumo-gui and ffmpeg; on a machine "
+                    "without a screen (Colab, servers) the script restarts itself under xvfb-run")
+p.add_argument("--video-size", type=int, default=1000, help="video width and height in pixels")
+p.add_argument("--video-fps", type=int, default=30, help="frames per second (one frame = one simulated second)")
 args = p.parse_args()
+if args.video:
+    import shutil
+    if not shutil.which("sumo-gui") or not shutil.which("ffmpeg"):
+        sys.exit("--video needs sumo-gui and ffmpeg (Colab: !apt-get -qq install -y xvfb ffmpeg; sumo-gui comes with eclipse-sumo)")
+    if not os.environ.get("DISPLAY") and not os.environ.get("MARL_IN_XVFB"):
+        if not shutil.which("xvfb-run"):
+            sys.exit("--video on a machine without a screen needs xvfb-run (Colab: !apt-get -qq install -y xvfb)")
+        os.environ["MARL_IN_XVFB"] = "1"
+        os.execvp("xvfb-run", ["xvfb-run", "-a", "-s", "-screen 0 1920x1200x24", sys.executable] + sys.argv)
 if args.ckpt:
     args.ckpt = os.path.abspath(args.ckpt)   # RLlib needs an absolute path (relative ones fail to restore)
 if args.ambulances:
@@ -81,6 +96,14 @@ if args.failsafe:
           flush=True)
 REPO = args.repo
 NET = f"{REPO}/configs/mygrid4x4.net.xml"
+SUMO_BIN, SUMO_EXTRA = "sumo", []
+if args.video:
+    # display options only: the simulation itself is identical to a run without --video
+    SUMO_BIN = "sumo-gui"
+    SUMO_EXTRA = ["--start", "--quit-on-end", "--delay", "0", "--window-size", "1200,1200",
+                  "--gui-settings-file", f"{REPO}/demo/sumo_gui_view.xml"]
+    os.environ["MARL_SUMO_BINARY"] = SUMO_BIN
+    os.environ["MARL_SUMO_EXTRA"] = " ".join(SUMO_EXTRA)
 os.environ["MARL_NET_FILE"] = NET
 os.environ["MARL_SUMO_CFG"] = f"{REPO}/configs/simulation_4x4.sumocfg"
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -137,16 +160,17 @@ from mgutil import min_green_for, set_min_green, no_comm_for  # noqa: E402
 if args.cond in ("B1", "B2", "E1"):
     if not args.ckpt:
         sys.exit("--ckpt is required for trained agents")
-    if args.cond == "E1" and no_comm_for(args.ckpt):
-        sys.exit("This checkpoint is the E1 no-communication control: the demo shows E1's messages, which the "
-                 "control does not use. Record E1 or B1 instead.")
     MG = min_green_for(args.ckpt, args.min_green)
+NOCOMM = args.cond == "E1" and bool(args.ckpt) and no_comm_for(args.ckpt)
+if NOCOMM:
+    print("E1 no-communication control: same network as E1, received messages replaced by zeros "
+          "(no message overlay is recorded, since the control does not use messages)", flush=True)
 elif args.cond == "fixed":
     MG = 0
 else:
     MG = 5 if args.min_green is None else args.min_green
 set_min_green(MG)
-LABEL = args.label or (args.cond + ("_blind" if args.blind else "") + ("_failsafe" if args.failsafe else "")
+LABEL = args.label or (args.cond + ("nocomm" if NOCOMM else "") + ("_blind" if args.blind else "") + ("_failsafe" if args.failsafe else "")
                         + ("_amb" if args.ambulances else "") + ("_preempt" if args.preempt else "")
                         + ("_explore" if args.explore else ""))
 OUT = args.out or f"/content/drive/MyDrive/MARL_results/demo/run_{LABEL}.json"
@@ -185,7 +209,7 @@ msg_frames = []
 t0 = time.time()
 
 if args.cond == "fixed":
-    traci.start(["sumo", "-n", NET, "-r", ROUTE, "--end", str(END), "--no-step-log", "--no-warnings"])
+    traci.start([SUMO_BIN, "-n", NET, "-r", ROUTE, "--end", str(END), "--no-step-log", "--no-warnings"] + SUMO_EXTRA)
     env = None
     model = None
 else:
@@ -212,11 +236,12 @@ else:
             from env.rllib_env_b2 import MARLTrafficEnvB2 as Env
         else:
             from env.rllib_env_e1 import MARLTrafficEnvE1 as Env
-            from env.comm_model import E1CommModel
+            from mgutil import e1_model
             from env.diversity_policy import E1DiversityPPOPolicy
-            ModelCatalog.register_custom_model("e1_comm_model_v3", E1CommModel)
+            model_name, model_cls = e1_model(NOCOMM)   # the same model the checkpoint was trained with
+            ModelCatalog.register_custom_model(model_name, model_cls)
             policy_cls = E1DiversityPPOPolicy
-            training["model"] = {"custom_model": "e1_comm_model_v3"}
+            training["model"] = {"custom_model": model_name}
         cfg = (PPOConfig().environment(Env, env_config={"route_file": None}).framework("torch")
                .api_stack(enable_rl_module_and_learner=False, enable_env_runner_and_connector_v2=False)
                .multi_agent(policies={"shared_policy": (policy_cls, None, None, {})},
@@ -228,7 +253,10 @@ else:
         algo.restore(args.ckpt)
         if args.explore:
             torch.manual_seed(args.seed)
-        model = algo.get_policy("shared_policy").model if args.cond == "E1" else None
+        model = algo.get_policy("shared_policy").model if (args.cond == "E1" and not NOCOMM) else None
+        if args.cond == "E1":
+            assert type(algo.get_policy("shared_policy").model).NO_COMM == NOCOMM, \
+                "internal error: E1 model kind does not match the checkpoint"
         choose = lambda obs, t: {a: algo.compute_single_action(o, policy_id="shared_policy", explore=args.explore)
                                  for a, o in obs.items()}
         if args.failsafe:
@@ -256,13 +284,39 @@ tl_ids = sorted(traci.trafficlight.getIDList())
 tl_lanes = {tl: sorted(set(traci.trafficlight.getControlledLanes(tl))) for tl in tl_ids}
 all_lanes = [l for l in traci.lane.getIDList() if not l.startswith(":")]
 
+if args.video:
+    import tempfile
+    VIEW = traci.gui.getIDList()[0]
+    traci.gui.setBoundary(VIEW, 40, 40, 960, 960)
+    FRAMES_DIR = tempfile.mkdtemp(prefix="sumo_gui_frames_")
+    # a red ring marks every light whose detectors failed (display only)
+    for tl in FAILED_LIGHTS:
+        x, y = traci.junction.getPosition(tl)
+        ring = [(x + 34 * math.cos(k / 32 * 2 * math.pi), y + 34 * math.sin(k / 32 * 2 * math.pi)) for k in range(33)]
+        traci.polygon.add(f"failed_{tl}", ring, (255, 40, 40, 255), fill=False, layer=10, lineWidth=5)
+    print(f"Video: SUMO-GUI frames of seconds {args.start}-{END} go to {FRAMES_DIR}", flush=True)
+
+
+def gui_frame_and_marks(t_next):
+    """ask sumo-gui for a screenshot of the state after the next step, and circle new ambulances"""
+    if args.start <= t_next <= END:
+        traci.gui.screenshot(VIEW, os.path.join(FRAMES_DIR, f"{t_next - args.start:05d}.png"),
+                             args.video_size, args.video_size)
+
+
 t = 0
 while t < END:
+    if args.video:
+        gui_frame_and_marks(t + 1)
     if env is None:
         traci.simulationStep()
     else:
         obs, _, _, _, _ = env.step(choose(obs, t))
     arrived[0] += traci.simulation.getArrivedNumber()
+    if args.video and args.ambulances:
+        for vid in traci.simulation.getDepartedIDList():
+            if vid.startswith("amb_"):
+                traci.vehicle.highlight(vid, (255, 255, 255, 255), 16)   # white circle that follows the ambulance
     t += 1
     if t >= args.start:
         fr = snapshot(t, tl_ids, tl_lanes, all_lanes)
@@ -282,10 +336,28 @@ try:
 except Exception:
     pass
 
+if args.video:
+    import shutil, subprocess
+    font = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    fontopt = f"fontfile={font}:" if os.path.exists(font) else ""
+    what = (f"{LABEL} | {args.scenario} | seed {args.seed}" + (f" | sensors of {','.join(FAILED_LIGHTS)} failed" if args.blind else "")
+            + (" + fixed-time fallback" if args.failsafe else "") + (" | ambulances" if args.ambulances else "")
+            + (" with priority" if args.preempt else ""))
+    clock = (f"%{{eif\\:trunc((n+{args.start})/60)\\:d\\:2}}\\:%{{eif\\:mod(n+{args.start}\\,60)\\:d\\:2}}")
+    vf = (f"drawtext={fontopt}text='{what}':x=14:y=14:fontsize=24:fontcolor=white:box=1:boxcolor=black@0.55:boxborderw=8,"
+          f"drawtext={fontopt}text='t = {clock}':x=w-tw-14:y=14:fontsize=24:fontcolor=white:box=1:boxcolor=black@0.55:boxborderw=8")
+    os.makedirs(os.path.dirname(os.path.abspath(args.video)), exist_ok=True)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(args.video_fps),
+                    "-i", os.path.join(FRAMES_DIR, "%05d.png"), "-vf", vf, "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                    "-crf", "20", "-preset", "veryfast", "-movflags", "+faststart", args.video + ".part.mp4"], check=True)
+    os.replace(args.video + ".part.mp4", args.video)  # the final name appears only when the video is complete
+    shutil.rmtree(FRAMES_DIR, ignore_errors=True)
+    print(f"Video saved: {args.video} ({args.duration} simulated seconds at {args.video_fps}x real time)", flush=True)
+
 data = {"label": LABEL, "cond": args.cond, "scenario": args.scenario, "seed": args.seed, "min_green": MG,
         "explore": bool(args.explore), "start": args.start, "duration": args.duration, "tls": tl_ids,
         "blind": args.blind, "failsafe": bool(args.failsafe),
-        "ambulances": bool(args.ambulances), "preempt": bool(args.preempt),
+        "ambulances": bool(args.ambulances), "preempt": bool(args.preempt), "no_comm": NOCOMM,
         "types": TYPES, "frames": frames}
 os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
 with open(OUT, "w") as f:

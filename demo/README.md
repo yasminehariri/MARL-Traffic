@@ -140,6 +140,16 @@ Options:
 
 For a quick test, use `--seconds 5 --width 1280 --height 720`.
 
+More options:
+- `--gpu`: use this computer's graphics card. It opens a browser window and is much faster.
+- `--manifest full/runs.json`: use the full-hour recordings.
+- `--view east-avenue` (or `failure-B1`, `ambulance-A1`, `ambulance-C0`): a fixed camera.
+- `--sim-from` and `--sim-to`: the simulation seconds to show.
+
+`bash scripts/make_city_videos.sh` makes all 12 defence videos in one go; see `videos/DEMO_GUIDE.md`.
+
+The **● Record video** button in the viewer records the tab live while it plays and saves the file. In Chrome or Edge, choose this tab when asked.
+
 ## How to describe it
 
 "The simulation is real SUMO output from our trained agents. We record it to JSON and replay it in a three.js visualiser. The visualiser only draws what happened; it doesn't simulate anything itself."
